@@ -18,7 +18,7 @@ Das Gilden-Modul der Freewood-Familie: eine Mitgliedertabelle mit Berufen, Favor
 - **Level-Ranking:** Wertung = Gesamt-EP durch Spielzeit; die besten vier oben als Highlight („Kopf an Kopf“), darunter die Tabelle. Mit „Folgen“ gibt es einen Hinweis bei Platzwechsel.
 - **Gildenaufträge:** Beruf und Rezept (aus den Rezepten der Mitglieder), Menge, Notiz, Materialliste mit „habe ich / fehlt“. Jeder darf einstellen, übernehmen („Mach ich“) und als erledigt markieren. Löschen dürfen Ersteller, Gildenleiter und Eigentümer. Nach 7 Tagen verschwindet alles von selbst.
 - **Anfragen:** wie Aufträge, aber auch mit beliebigen Items (Suche über Freewood-CodexData) und Tooltips.
-- **Instanz-Übersicht:** alle Dungeons und Raids mit Bossen; Mausüberfahrt zeigt, wer den Boss getötet hat; Filter pro Spieler. Quellen: Boss-Kills des Spiels (`ENCOUNTER_END`), Todesmeldungen im Kampfprotokoll und gesperrte Instanzen.
+- **Instanz-Übersicht:** alle Dungeons und Raids mit Bossen; Mausüberfahrt zeigt, wer den Boss getötet hat; Filter pro Spieler. Quellen: Boss-Kills des Spiels (`ENCOUNTER_END`), `BOSS_KILL` und gesperrte Instanzen.
 - **Karte:** Gildenmitglieder auf der Weltkarte (Affenkopf, Gildenleiter mit Krone). In den Einstellungen ein-/ausschaltbar, eigene Position teilbar, Symbolgröße 8 bis 64 Pixel.
 - **Symbole:** Affenkopf für Mitglieder, Affenkopf mit Krone für den Gildenleiter (`Media\affen_mitglied.tga`, `Media\ober_affe.tga`).
 - **Befehle:** `/fwguild` (öffnen), `/fwguild probe` (prüft, was das Spiel liefert), `/fwguild share` (Daten neu senden), `/fwguild refresh`.
@@ -49,7 +49,7 @@ The guild module of the Freewood family: a member table with professions, favour
 - **Level ranking:** score = total XP divided by played time; the top four as a highlight ("head to head"), the table below. "Follow" gives a notice when ranks change.
 - **Guild orders:** profession and recipe (from members' recipes), quantity, note, material list with "have / missing". Anyone can post, take ("I'll do it") and mark done. The creator, the guild master and owners can delete. Everything vanishes after 7 days.
 - **Requests:** like orders, but also any item (search via Freewood-CodexData) with tooltips.
-- **Instance overview:** all dungeons and raids with bosses; hover shows who killed a boss; per-player filter. Sources: the game's boss kills (`ENCOUNTER_END`), death messages in the combat log and saved instances.
+- **Instance overview:** all dungeons and raids with bosses; hover shows who killed a boss; per-player filter. Sources: the game's boss kills (`ENCOUNTER_END`), `BOSS_KILL` and saved instances.
 - **Map:** guild members on the world map (monkey head, guild master with crown). Switchable in the settings, own position shareable, icon size 8 to 64 pixels.
 - **Icons:** monkey head for members, crowned monkey head for the guild master (`Media\affen_mitglied.tga`, `Media\ober_affe.tga`).
 - **Commands:** `/fwguild` (open), `/fwguild probe` (checks what the game provides), `/fwguild share` (resend data), `/fwguild refresh`.

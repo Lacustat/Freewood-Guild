@@ -1,5 +1,5 @@
 -- Freewood-Guild: Instanz-Uebersicht. Wer hat welchen Boss getoetet?
--- Quellen: ENCOUNTER_END, Todesmeldungen im Kampfprotokoll (vorsichtig) und gesperrte Instanzen (RequestRaidInfo).
+-- Quellen: ENCOUNTER_END, BOSS_KILL und gesperrte Instanzen (das Kampfprotokoll ist fuer Addons gesperrt) (RequestRaidInfo).
 -- Jeder Spieler mit dem Addon meldet seine Boss-Kills an die Gilde (Art "K").
 -- UNGEPRUEFT im Spiel. Die Boss- und Instanzliste ist eine feste Grundliste (Vanilla); was das Spiel sonst meldet, kommt dynamisch dazu.
 
@@ -391,16 +391,9 @@ local function Register()
         end
     end, owner)
     FW:RegisterEvent("UPDATE_INSTANCE_INFO", function() pcall(Inst.ImportSaved) end, owner)
-    FW:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", function()
-        if not G.CombatLogGetCurrentEventInfo then return end
-        local ok, _, sub, _, _, _, _, _, _, destName = pcall(G.CombatLogGetCurrentEventInfo)
-        if not ok or Secret(sub) or Secret(destName) then return end
-        if sub ~= "UNIT_DIED" or type(destName) ~= "string" then return end
-        local inst = CurrentInstanceName()
-        if not inst then return end
-        -- nur Bosse aus der Grundliste zaehlen, damit nicht jeder Mob eintragen wird
-        local e, boss = Inst.Canon(inst, destName)
-        if e and e.idx[string.lower(boss)] then Inst.RecordOwn(inst, destName) end
+    -- Das Kampfprotokoll ist fuer Addons gesperrt (ADDON_ACTION_FORBIDDEN); BOSS_KILL liefert den Boss ohne Umweg.
+    FW:RegisterEvent("BOSS_KILL", function(_, id, name)
+        Inst.RecordOwn(CurrentInstanceName(), name)
     end, owner)
     Share.After(25, function()
         if G.RequestRaidInfo then pcall(G.RequestRaidInfo) end

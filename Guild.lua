@@ -519,7 +519,14 @@ SLASH_FREEWOODGUILD1 = "/fwguild"
 SLASH_FREEWOODGUILD2 = "/fwgilde"
 SlashCmdList["FREEWOODGUILD"] = function(msg)
     msg = string.lower((string.gsub(msg or "", "^%s+", "")))
-    if msg == "probe" then
+    if msg == "sendtest" then
+        FW:Print("Sende-Test (14 Nachrichten hintereinander):")
+        for _, l in ipairs(Guild.Share.SendTest()) do FW:Print(l) end
+        return
+    elseif msg == "stats" then
+        FW:Print(Guild.Share.Stats())
+        return
+    elseif msg == "probe" then
         Guild.Probe()
     elseif msg == "share" then
         if Guild.Share then Guild.Share.SendAll(true) end

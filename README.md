@@ -1,6 +1,6 @@
 # Freewood-Guild
 
-**Deutsch & English · German & English.** Autor · Author: Lacustat. Version 0.3.0 · Interface 16001 (World of Warcraft: Forever).
+**Deutsch & English · German & English.** Autor · Author: Lacustat. Version 0.3.1 · Interface 16001 (World of Warcraft: Forever).
 
 ## Inhalt · Contents
 - [Deutsch](#deutsch)
@@ -22,10 +22,10 @@ Das Gilden-Modul der Freewood-Familie: eine Mitgliedertabelle mit Berufen, Favor
 - **Instanz-Übersicht:** alle Dungeons und Raids mit Bossen; Mausüberfahrt zeigt, wer den Boss getötet hat; Filter pro Spieler. Quellen: Boss-Kills des Spiels (`ENCOUNTER_END`), `BOSS_KILL` und gesperrte Instanzen.
 - **Karte:** Gildenmitglieder auf der Weltkarte (Affenkopf, Gildenleiter mit Krone). In den Einstellungen ein-/ausschaltbar, eigene Position teilbar, Symbolgröße 8 bis 64 Pixel.
 - **Symbole:** Affenkopf für Mitglieder, Affenkopf mit Krone für den Gildenleiter (`Media\affen_mitglied.tga`, `Media\ober_affe.tga`).
-- **Befehle:** `/fwguild` (öffnen), `/fwguild probe` (prüft, was das Spiel liefert), `/fwguild share` (Daten neu senden), `/fwguild refresh`.
+- **Befehle:** `/fwguild` (öffnen), `/fwguild probe` (prüft, was das Spiel liefert), `/fwguild share` (Daten neu senden), `/fwguild refresh`, `/fwguild sendtest` (misst die Sendegrenze des Spiels), `/fwguild stats` (Sende-Statistik).
 
 ### So kommen die Daten zustande
-Aus der Gildenliste des Spiels kommen Name, Level, Klasse, Rang, Zone, Online-Status (und die Rasse per GUID, wenn möglich). Berufe, Rezepte, EP, Spielzeit, Gold, Aufträge, Boss-Kills und Position meldet jedes Mitglied mit diesem Addon selbst über Addon-Nachrichten (Präfix `FWGuild1`, gedrosselt). Wer das Addon nicht hat, zeigt dort „-“. Rezepte werden gemeldet, sobald der Spieler sein Berufefenster öffnet. Das Gold geht nur als Flüsternachricht an online Eigentümer (aus `Freewood-Codex`).
+Aus der Gildenliste des Spiels kommen Name, Level, Klasse, Rang, Zone, Online-Status (und die Rasse per GUID, wenn möglich). Berufe, Rezepte, EP, Spielzeit, Gold, Aufträge, Boss-Kills und Position meldet jedes Mitglied mit diesem Addon selbst über Addon-Nachrichten (Präfix `FWGuild1`, gedrosselt wie Blizzards Regel: Burst bis 8, danach etwa eine Nachricht pro Sekunde; abgelehnte Nachrichten bleiben in der Warteschlange). Wer das Addon nicht hat, zeigt dort „-“. Rezepte werden gemeldet, sobald der Spieler sein Berufefenster öffnet. Das Gold geht nur als Flüsternachricht an online Eigentümer (aus `Freewood-Codex`).
 
 ### Abhängigkeiten
 - Benötigt: `Freewood-Core` (ab 0.7.0 für die Beobachtungsliste)
@@ -54,10 +54,10 @@ The guild module of the Freewood family: a member table with professions, favour
 - **Instance overview:** all dungeons and raids with bosses; hover shows who killed a boss; per-player filter. Sources: the game's boss kills (`ENCOUNTER_END`), `BOSS_KILL` and saved instances.
 - **Map:** guild members on the world map (monkey head, guild master with crown). Switchable in the settings, own position shareable, icon size 8 to 64 pixels.
 - **Icons:** monkey head for members, crowned monkey head for the guild master (`Media\affen_mitglied.tga`, `Media\ober_affe.tga`).
-- **Commands:** `/fwguild` (open), `/fwguild probe` (checks what the game provides), `/fwguild share` (resend data), `/fwguild refresh`.
+- **Commands:** `/fwguild` (open), `/fwguild probe` (checks what the game provides), `/fwguild share` (resend data), `/fwguild refresh`, `/fwguild sendtest` (measures the game's send limit), `/fwguild stats` (send statistics).
 
 ### Where the data comes from
-The game's guild roster provides name, level, class, rank, zone, online status (and the race via GUID when possible). Professions, recipes, XP, played time, gold, orders, boss kills and position are reported by each member with this addon via addon messages (prefix `FWGuild1`, throttled). Players without the addon show "-". Recipes are reported when the player opens the profession window. Gold goes only as a whisper to online owners (from `Freewood-Codex`).
+The game's guild roster provides name, level, class, rank, zone, online status (and the race via GUID when possible). Professions, recipes, XP, played time, gold, orders, boss kills and position are reported by each member with this addon via addon messages (prefix `FWGuild1`, throttled like Blizzard's rule: burst up to 8, then about one message per second; rejected messages stay in the queue). Players without the addon show "-". Recipes are reported when the player opens the profession window. Gold goes only as a whisper to online owners (from `Freewood-Codex`).
 
 ### Dependencies
 - Required: `Freewood-Core` (0.7.0 or newer for the watch list)

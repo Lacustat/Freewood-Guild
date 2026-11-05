@@ -21,7 +21,14 @@ local Share = {}
 Guild.Share = Share
 
 local PREFIX = "FWGuild1"
-local GAP = 0.7                 -- Sekunden zwischen zwei gesendeten Nachrichten
+-- Blizzard: je Praefix 10 Nachrichten Guthaben, danach 1 pro Sekunde (AddonMessageThrottle = Ergebnis 3, ChannelThrottle = 8).
+-- Wir bilden das nach, mit etwas Sicherheitsabstand: Guthaben 8, Auffuellen alle 1,1 s (nach einer Ablehnung voruebergehend 2 s).
+local BUCKET_CAP = 8
+local REFILL = 1.1
+local REFILL_SLOW = 2.0
+local SLOW_FOR = 60
+local MAX_PER_PUMP = 4
+local THROTTLE_CODES = { [3] = true, [8] = true }
 local MAX_QUEUE = 120
 local PIECE = 200               -- Zeichen je Rezept-Stueck
 local PROFILE_EVERY = 300       -- Sekunden zwischen zwei Profil-Meldungen
@@ -46,15 +53,25 @@ local played = nil              -- { base =, at = }
 -- Senden
 ------------------------------------------------------------------------
 
+-- Rueckgabe: "ok", "throttle" oder "fail"
 local function Raw(text, dist, target)
     local api = G.C_ChatInfo
+    local ok, res
     if api and api.SendAddonMessage then
-        local ok = pcall(api.SendAddonMessage, PREFIX, text, dist, target)
-        return ok
+        ok, res = pcall(api.SendAddonMessage, PREFIX, text, dist, target)
     elseif G.SendAddonMessage then
-        return pcall(G.SendAddonMessage, PREFIX, text, dist, target)
+        ok, res = pcall(G.SendAddonMessage, PREFIX, text, dist, target)
+    else
+        return "fail"
     end
-    return false
+    if not ok then return "fail" end
+    if type(res) == "number" then
+        if res == 0 then return "ok" end
+        if THROTTLE_CODES[res] then return "throttle", res end
+        return "fail", res
+    end
+    if res == false then return "fail" end
+    return "ok"
 end
 
 function Share.Queue(text, dist, target)
@@ -81,7 +98,42 @@ function Share.Split(text, len)
 end
 
 function Share.QueueLength() return #queue end
-function Share.Reset() queue, tasks = {}, {} end
+function Share.Reset()
+    queue, tasks = {}, {}
+    Share.tokens, Share.tokenAt, Share.slowUntil = BUCKET_CAP, nil, nil
+end
+
+Share.tokens = BUCKET_CAP
+
+function Share.Refill(now)
+    now = now or Clock()
+    local last = Share.tokenAt
+    Share.tokenAt = now
+    if not last then return end
+    local rate = (Share.slowUntil and now < Share.slowUntil) and REFILL_SLOW or REFILL
+    Share.tokens = math.min(BUCKET_CAP, (Share.tokens or 0) + (now - last) / rate)
+end
+
+-- Messung im echten Spiel: sendet 14 harmlose Nachrichten hintereinander und meldet die Ergebnisse
+function Share.SendTest()
+    if not Guild.InGuild() then return { "Nicht in einer Gilde." } end
+    local out, okCount, first = {}, 0, nil
+    local api = G.C_ChatInfo
+    for i = 1, 14 do
+        local ok, res
+        if api and api.SendAddonMessage then ok, res = pcall(api.SendAddonMessage, PREFIX, "T|" .. i, "GUILD") end
+        local label = (not ok) and "Fehler" or (type(res) == "number" and ("Code " .. res)) or tostring(res)
+        if type(res) == "number" and res == 0 or res == true or res == nil and ok then okCount = okCount + 1 elseif not first then first = i end
+        out[#out + 1] = i .. ": " .. label
+    end
+    out[#out + 1] = string.format("Davon angenommen: %d von 14, erste Ablehnung bei Nachricht %s.", okCount, tostring(first or "-"))
+    return out
+end
+
+function Share.Stats()
+    return string.format("Gesendet %d, abgelehnt (Throttle) %d, Fehler %d, Guthaben %.1f, Warteschlange %d",
+        Share.sentCount or 0, Share.throttled or 0, Share.failed or 0, Share.tokens or 0, #queue)
+end
 
 function Share.Pump()
     local now = Clock()
@@ -102,10 +154,22 @@ function Share.Pump()
         Share.dirtyAt = nil
         pcall(Share.UpdateSelf)
     end
-    if #queue > 0 and now - lastSend >= GAP then
-        local m = table.remove(queue, 1)
-        lastSend = now
-        Raw(m.text, m.dist, m.target)
+    Share.Refill(now)
+    local sentNow = 0
+    while #queue > 0 and Share.tokens >= 1 and sentNow < MAX_PER_PUMP do
+        local m = queue[1]
+        local res = Raw(m.text, m.dist, m.target)
+        if res == "throttle" then
+            -- abgelehnt: Nachricht bleibt vorne, Guthaben leer, eine Weile langsamer
+            Share.tokens = 0
+            Share.slowUntil = now + SLOW_FOR
+            Share.throttled = (Share.throttled or 0) + 1
+            break
+        end
+        table.remove(queue, 1)
+        Share.tokens = Share.tokens - 1
+        sentNow = sentNow + 1
+        if res == "ok" then Share.sentCount = (Share.sentCount or 0) + 1 else Share.failed = (Share.failed or 0) + 1 end
     end
     if Guild.Setting("shareProfile") and Guild.InGuild() and now - lastProfile >= PROFILE_EVERY and Share.started then
         Share.SendProfile()

@@ -329,12 +329,40 @@ local XP_NEXT = {
 }
 Guild.XP_NEXT = XP_NEXT
 
+-- Forever weicht von der Vanilla-Tabelle ab (Probe: Level 13 braucht 11400 statt 11000). Deshalb merkt sich das Modul
+-- die echten Werte, die Spieler melden (Level -> EP bis zum naechsten Level). Unbekannte Level werden aus der
+-- Vanilla-Tabelle mit dem mittleren Verhaeltnis der bekannten Level hochgerechnet.
+function Guild.LearnXP(level, xpmax)
+    level, xpmax = tonumber(level), tonumber(xpmax)
+    if not level or not xpmax or level < 1 or level > #XP_NEXT or xpmax <= 0 or Secret(xpmax) then return end
+    local db = Guild.DB()
+    db.xpTable = db.xpTable or {}
+    db.xpTable[level] = xpmax
+end
+
+local function XPScale()
+    local t = Guild.DB().xpTable
+    if not t then return 1 end
+    local sum, n = 0, 0
+    for l, v in pairs(t) do
+        if XP_NEXT[l] then sum = sum + v / XP_NEXT[l]; n = n + 1 end
+    end
+    return n > 0 and sum / n or 1
+end
+
+function Guild.XPNext(level, scale)
+    local t = Guild.DB().xpTable
+    if t and t[level] then return t[level] end
+    return (XP_NEXT[level] or XP_NEXT[#XP_NEXT]) * (scale or XPScale())
+end
+
 -- Gesamt-EP, die ein Charakter bisher gesammelt hat
 function Guild.TotalXP(level, xp)
     level = tonumber(level) or 1
     local total = 0
+    local scale = XPScale()
     for l = 1, level - 1 do
-        total = total + (XP_NEXT[l] or XP_NEXT[#XP_NEXT])
+        total = total + Guild.XPNext(l, scale)
     end
     return total + (tonumber(xp) or 0)
 end
@@ -412,6 +440,11 @@ function Guild.ProbeText()
         local t = {}
         for id, v in pairs(s) do t[#t + 1] = Guild.ProfName(id) .. " " .. tostring(v.rank) .. "/" .. tostring(v.max) end
         return #t > 0 and table.concat(t, ", ") or "keine gefunden"
+    end)())
+    Add("Gelernte EP-Werte: " .. (function()
+        local t, n = Guild.DB().xpTable or {}, 0
+        for _ in pairs(t) do n = n + 1 end
+        return n
     end)())
     Add("Max. Level-Tabelle Eintraege: " .. #XP_NEXT .. "; UnitXPMax(player) = " .. tostring(G.UnitXPMax and G.UnitXPMax("player")) ..
         " (Tabelle fuer eigenes Level: " .. tostring(XP_NEXT[(G.UnitLevel and G.UnitLevel("player") or 1)]) .. ")")

@@ -190,6 +190,7 @@ function Share.UpdateSelf()
     rec.gold = d.gold
     rec.stamp = d.stamp
     rec.self = true
+    Guild.LearnXP(d.level, d.xpmax)
     db.members[key] = rec
     Guild.Changed()
 end
@@ -437,6 +438,7 @@ function Share.OnMessage(prefix, text, channel, sender)
         rec.skills = d.skills
         rec.stamp = Now()
         rec.self = nil
+        Guild.LearnXP(d.level, d.xpmax)
         Guild.Changed()
     elseif kind == "C" then
         local prof, idx, n, csv = string.match(body, "^(%d+)|(%d+)|(%d+)|([%d,]*)$")

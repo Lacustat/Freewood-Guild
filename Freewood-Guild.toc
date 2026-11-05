@@ -1,0 +1,17 @@
+## Interface: 16001
+## Title: Freewood |cffc89b3cGuild|r
+## Notes: Guild module of the Freewood family: member table with professions, favourite groups and a level ranking.
+## Notes-deDE: Gilden-Modul der Freewood-Familie: Mitgliedertabelle mit Berufen, Favoritengruppen und Level-Ranking.
+## Author: Lacustat
+## Version: 0.1.0
+## Dependencies: Freewood-Core
+## OptionalDeps: Freewood-Codex, Freewood-CodexData
+## SavedVariables: FreewoodGuildDB
+## IconTexture: Interface\AddOns\Freewood-Guild\Media\affen_mitglied
+
+Locales.lua
+Guild.lua
+GuildShare.lua
+GuildFav.lua
+GuildUI.lua
+GuildRank.lua

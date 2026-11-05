@@ -376,7 +376,7 @@ function Guild.ProbeText()
         Add(string.format("%s %s", Has(n) and "+" or "-", n))
     end
     local inGuild = Guild.InGuild()
-    Add("Gilde: " .. (inGuild and "ja" or "nein"))
+    Add("Gilde: " .. (inGuild and "ja" or "nein") .. (inGuild and "" or " (Gildenliste und Rasse per GUID koennen nur in einer Gilde geprueft werden)"))
     if inGuild and G.GetNumGuildMembers then
         Add("Mitglieder: " .. tostring(G.GetNumGuildMembers()))
         local first = { G.GetGuildRosterInfo(1) }
@@ -398,6 +398,14 @@ function Guild.ProbeText()
     if G.GetProfessions then
         local a, b, c, d, e, f = G.GetProfessions()
         Add("GetProfessions: " .. tostring(a) .. " " .. tostring(b) .. " " .. tostring(c) .. " " .. tostring(d) .. " " .. tostring(e) .. " " .. tostring(f))
+        if G.GetProfessionInfo then
+            for i, idx in ipairs({ a, b, c, d, e, f }) do
+                if idx then
+                    local ok, r1, r2, r3, r4, r5, r6, r7 = pcall(G.GetProfessionInfo, idx)
+                    Add("Beruf " .. i .. " (Index " .. tostring(idx) .. "): " .. tostring(r1) .. " | Rang " .. tostring(r3) .. "/" .. tostring(r4) .. " | Fertigkeit-ID " .. tostring(r7))
+                end
+            end
+        end
     end
     Add("Eigene Berufe: " .. (function()
         local s = Guild.Share and Guild.Share.ReadSkills and Guild.Share.ReadSkills() or {}

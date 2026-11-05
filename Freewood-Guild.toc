@@ -3,7 +3,7 @@
 ## Notes: Guild module of the Freewood family: member table, favourite groups, level ranking, guild orders, requests, instance overview and map positions.
 ## Notes-deDE: Gilden-Modul der Freewood-Familie: Mitgliedertabelle, Favoritengruppen, Level-Ranking, Gildenaufträge, Anfragen, Instanz-Übersicht und Kartenpositionen.
 ## Author: Lacustat
-## Version: 0.2.1
+## Version: 0.3.0
 ## Dependencies: Freewood-Core
 ## OptionalDeps: Freewood-Codex, Freewood-CodexData
 ## SavedVariables: FreewoodGuildDB
@@ -15,6 +15,7 @@ GuildShare.lua
 GuildFav.lua
 GuildUI.lua
 GuildRank.lua
+GuildRecipes.lua
 GuildBoard.lua
 GuildBoardUI.lua
 GuildInst.lua

@@ -248,7 +248,7 @@ local function BuildCreate()
                         st.tid = e.id
                         st.targetName = e.name
                         if st.tt == "r" then
-                            local mats = Board.MatsFor(e.name)
+                            local mats = (Guild.RecipeMats and Guild.RecipeMats(e.id)) or Board.MatsFor(e.name)
                             if mats then st.mats = mats end
                         end
                     end

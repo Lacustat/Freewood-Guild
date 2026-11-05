@@ -1,9 +1,9 @@
 ## Interface: 16001
 ## Title: Freewood |cffc89b3cGuild|r
-## Notes: Guild module of the Freewood family: member table with professions, favourite groups and a level ranking.
-## Notes-deDE: Gilden-Modul der Freewood-Familie: Mitgliedertabelle mit Berufen, Favoritengruppen und Level-Ranking.
+## Notes: Guild module of the Freewood family: member table, favourite groups, level ranking, guild orders, requests, instance overview and map positions.
+## Notes-deDE: Gilden-Modul der Freewood-Familie: Mitgliedertabelle, Favoritengruppen, Level-Ranking, Gildenaufträge, Anfragen, Instanz-Übersicht und Kartenpositionen.
 ## Author: Lacustat
-## Version: 0.1.0
+## Version: 0.2.0
 ## Dependencies: Freewood-Core
 ## OptionalDeps: Freewood-Codex, Freewood-CodexData
 ## SavedVariables: FreewoodGuildDB
@@ -15,3 +15,7 @@ GuildShare.lua
 GuildFav.lua
 GuildUI.lua
 GuildRank.lua
+GuildBoard.lua
+GuildBoardUI.lua
+GuildInst.lua
+GuildMap.lua

@@ -704,13 +704,13 @@ local function BuildMain(content)
         for _, def in ipairs(Guild.pages) do
             local b = f.buttons[def.id]
             if not b then
-                b = UI.CreateButton(bar, "", 150, 26, function() f.Select(def.id) end)
+                b = UI.CreateButton(bar, "", 128, 26, function() f.Select(def.id) end)
                 f.buttons[def.id] = b
             end
             b:SetLabel(def.label())
             b:ClearAllPoints()
             b:SetPoint("TOPLEFT", bar, "TOPLEFT", x, 0)
-            x = x + 156
+            x = x + 132
         end
     end
     f.LayoutBar()
@@ -741,7 +741,7 @@ if UI.RegisterSettingsSection then
     UI:RegisterSettingsSection("guild-module", {
         category = "general",
         order = 60,
-        height = 190,
+        height = 330,
         build = function(parent)
             local L = FW.L
             local f, stack = UI.CreateSection(parent, L.GUILD_SET_TITLE)
@@ -753,10 +753,28 @@ if UI.RegisterSettingsSection then
             Box(L.GUILD_SET_PROFILE, "shareProfile")
             Box(L.GUILD_SET_RECIPES, "shareRecipes")
             Box(L.GUILD_SET_GOLD, "shareGold")
+            Box(L.GUILD_SET_BOARD, "boardNotify")
+            Box(L.GUILD_SET_MAPSHOW, "mapShow")
+            Box(L.GUILD_SET_MAPSHARE, "mapShare")
+            local sizeLabel = UI.CreateLabel(f, "", { size = 12 })
+            stack:Add(sizeLabel, { fit = true, gap = 8 })
+            local slider = UI.CreateSlider(f, 240, {
+                min = 8, max = 64, step = 2,
+                get = function() return tonumber(Guild.Setting("mapSize")) or 24 end,
+                set = function(v)
+                    Guild.DB().settings.mapSize = v
+                    sizeLabel:SetText(string.format(L.GUILD_SET_MAPSIZE, v))
+                    if Guild.Map and Guild.Map.Refresh then pcall(Guild.Map.Refresh) end
+                end,
+            })
+            slider.onText = function(v) sizeLabel:SetText(string.format(L.GUILD_SET_MAPSIZE, v)) end
+            stack:Add(slider, { height = 20, gap = 4 })
+            f.slider = slider
             local note = UI.CreateLabel(f, L.GUILD_SET_NOTE, { size = 11, color = "textDim", justifyV = "TOP" })
             note:SetWordWrap(true)
             stack:Add(note, { height = 44, gap = 8 })
             return f
         end,
+        refresh = function(frame) if frame.slider then frame.slider:Refresh() end end,
     })
 end

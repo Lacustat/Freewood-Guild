@@ -45,6 +45,10 @@ Guild.SETTINGS = {
     shareRecipes = true,     -- eigene Rezepte teilen
     shareGold = true,        -- Gold nur an online Eigentuemer schicken
     follow = false,          -- Rangliste verfolgen (Popups)
+    boardNotify = true,      -- Hinweis bei neuen Auftraegen/Anfragen
+    mapShow = true,          -- Gildenmitglieder auf der Weltkarte zeigen
+    mapShare = true,         -- eigene Position teilen
+    mapSize = 24,            -- Symbolgroesse in Pixeln (8 bis 64)
 }
 
 function Guild.DB()

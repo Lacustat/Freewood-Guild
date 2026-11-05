@@ -33,6 +33,10 @@ local function Now() return G.time and G.time() or 0 end
 local function Secret(v) return Guild.Secret(v) end
 
 local queue, tasks = {}, {}
+Share.handlers = {}        -- [Art] = function(key, body, channel, sender)
+Share.requestHooks = {}    -- function(wantRecipes, sender): bei "Q"
+Share.startHooks = {}      -- function(): nach dem Anmelden
+Share.sendAllHooks = {}    -- function(): bei /fwguild share
 local lastSend = -100
 local lastProfile, lastRecipes, lastGold = -10000, -10000, -10000
 local rbuf = {}
@@ -62,6 +66,18 @@ end
 
 function Share.After(seconds, fn)
     tasks[#tasks + 1] = { at = Clock() + seconds, fn = fn }
+end
+
+-- Text in Stuecke zu je len Zeichen
+function Share.Split(text, len)
+    local out = {}
+    len = len or PIECE
+    local i = 1
+    while i <= #text do
+        out[#out + 1] = string.sub(text, i, i + len - 1)
+        i = i + len
+    end
+    return out
 end
 
 function Share.QueueLength() return #queue end
@@ -429,6 +445,11 @@ function Share.OnMessage(prefix, text, channel, sender)
     local kind = string.sub(text, 1, 1)
     local body = string.sub(text, 3)
     if string.sub(text, 2, 2) ~= "|" then return end
+    local custom = Share.handlers[kind]
+    if custom then
+        pcall(custom, key, body, channel, sender)
+        return
+    end
     if kind == "P" then
         local d = DecodeProfile(body)
         local rec = Member(key)
@@ -478,6 +499,7 @@ function Share.OnMessage(prefix, text, channel, sender)
             lastRecipes = now
             Share.After(8 + math.random() * 50, SendRecipesAll)
         end
+        for _, hook in ipairs(Share.requestHooks) do pcall(hook, wantRecipes, sender) end
         if Guild.IsOwnerName(sender) and Guild.Setting("shareGold") then
             Share.After(2 + math.random() * 8, function() Share.SendGold() end)
         end
@@ -503,6 +525,7 @@ function Share.SendAll(force)
     Share.SendProfile()
     SendRecipesAll()
     Share.SendGold()
+    for _, hook in ipairs(Share.sendAllHooks) do pcall(hook) end
 end
 
 ------------------------------------------------------------------------
@@ -556,6 +579,7 @@ function Share.Start()
         Share.Request(true)
     end)
     Share.After(30, function() Share.SendGold() end)
+    for _, hook in ipairs(Share.startHooks) do pcall(hook) end
 end
 
 function Share.Stop()

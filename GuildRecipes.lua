@@ -266,11 +266,11 @@ local function GetRow(i)
     r.bg:SetAllPoints()
     r.line1 = UI.CreateLabel(r, "", { size = 12 })
     r.line1:SetPoint("TOPLEFT", r, "TOPLEFT", 6, -4)
-    r.line1:SetPoint("RIGHT", r, "RIGHT", -100, 0)
+    r.line1:SetPoint("RIGHT", r, "RIGHT", -196, 0)
     r.line1:SetWordWrap(false)
     r.line2 = UI.CreateLabel(r, "", { size = 11, color = "textDim" })
     r.line2:SetPoint("TOPLEFT", r, "TOPLEFT", 6, -19)
-    r.line2:SetPoint("RIGHT", r, "RIGHT", -100, 0)
+    r.line2:SetPoint("RIGHT", r, "RIGHT", -196, 0)
     r.line2:SetWordWrap(false)
     r.btn = UI.CreateButton(r, FW.L.GUILD_WATCH, 90, 22, function()
         local e = r.entry
@@ -294,6 +294,13 @@ local function GetRow(i)
         end
     end)
     r.btn:SetPoint("RIGHT", r, "RIGHT", -4, 0)
+    -- Gewinn (nur mit Freewood-Auction): selbst gefarmt / alles im AH
+    r.profit = UI.CreateLabel(r, "", { size = 11, justify = "RIGHT" })
+    r.profit:SetPoint("RIGHT", r.btn, "LEFT", -6, 5)
+    r.profit:SetWidth(96)
+    r.profit2 = UI.CreateLabel(r, "", { size = 10, justify = "RIGHT", color = "textDim" })
+    r.profit2:SetPoint("RIGHT", r.btn, "LEFT", -6, -7)
+    r.profit2:SetWidth(96)
     r:SetScript("OnEnter", Tip)
     r:SetScript("OnLeave", function() if G.GameTooltip then G.GameTooltip:Hide() end end)
     rows[i] = r
@@ -393,6 +400,16 @@ local function Fill()
         r.link = (e.info and e.info.it) and ("item:" .. e.info.it) or ("spell:" .. e.rid)
         r.text = e.title
         if FW.Watch then r.btn:Show() else r.btn:Hide() end
+        r.profit:SetText("")
+        r.profit2:SetText("")
+        local A = FW.Auction
+        if A and A.CraftFromInfo and e.info then
+            local okc, c = pcall(A.CraftFromInfo, e.info)
+            if okc and c then
+                r.profit:SetText(A.SignedMoney(c.profitFarm))
+                r.profit2:SetText(c.profitAH and A.SignedMoney(c.profitAH) or "")
+            end
+        end
         r:Show()
         y = y + ROW_H + 2
     end

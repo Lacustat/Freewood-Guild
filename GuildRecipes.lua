@@ -274,8 +274,24 @@ local function GetRow(i)
     r.line2:SetWordWrap(false)
     r.btn = UI.CreateButton(r, FW.L.GUILD_WATCH, 90, 22, function()
         local e = r.entry
-        if not (e and FW.Watch) then return end
-        FW.Watch.Add({ key = "r" .. e.rid, name = e.title, itemId = e.info and e.info.it, spellId = e.rid, mats = e.info and e.info.m or {} })
+        if not e then
+            FW:Print("Beobachten: kein Rezept in dieser Zeile.")
+            return
+        end
+        local W = FW.Watch
+        if not (W and W.Add) then
+            FW:Print("Beobachten: Freewood-Core 0.7.0 oder neuer fehlt.")
+            return
+        end
+        local ok, res = pcall(W.Add, { key = "r" .. e.rid, name = e.title, itemId = e.info and e.info.it, spellId = e.rid, mats = e.info and e.info.m or {} })
+        if not ok then
+            FW:Print("Beobachten: Fehler - " .. tostring(res))
+        elseif res then
+            FW:Print(string.format("Beobachten: %s (%d in der Liste)", tostring(e.title), #W.List()))
+            if W.Show then pcall(W.Show) end
+        else
+            FW:Print("Beobachten: konnte nicht hinzugefügt werden (Liste voll?).")
+        end
     end)
     r.btn:SetPoint("RIGHT", r, "RIGHT", -4, 0)
     r:SetScript("OnEnter", Tip)

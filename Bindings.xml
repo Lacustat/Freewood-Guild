@@ -1,0 +1,5 @@
+<Bindings>
+    <Binding name="FREEWOOD_GUILD_TAB" header="FREEWOOD_GUILD" category="ADDONS">
+        Freewood_ToggleTab("guild")
+    </Binding>
+</Bindings>

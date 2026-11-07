@@ -148,5 +148,19 @@ Ach.Check()
 eq(#toasts, c, "bei ausgeschalteter Einstellung kein Fenster")
 eq(db.ach.done.D3_ZF ~= nil, true, "trotzdem vermerkt")
 eq(#db.ach.log >= 3, true, "Liste der letzten Erfolge")
+
+-- Forever-Dungeons
+local rol = Inst.Get("ROL")
+eq(rol ~= nil and #rol.bosses == 7, true, "ROL vorhanden")
+local ce, cb = Inst.Canon("Ruinen von Lordaeron", "Der Schlächter")
+eq(ce and ce.id, "ROL", "Canon ROL (DE)"); eq(cb, "The Baron", "Schlaechter = Baron")
+local _, cb2 = Inst.Canon("Ruins of Lordaeron", "Viktor der Üble"); eq(cb2, "Viktor the Vile", "Viktor DE")
+eq(Ach.IsFinal(rol, "The Baron"), true, "ROL Endboss"); eq(Ach.IsFinal(Inst.Get("DAL"), "Shade of the Archmage"), true, "DAL Endboss")
+local me0 = Guild.SelfKey()
+Guild.DB().members[me0] = Guild.DB().members[me0] or {}
+Guild.DB().members[me0].kills = { ["*Ruinen von Lordaeron"] = { ["Welkzahn"] = true, ["Der Schlächter"] = true } }
+eq(Inst.MigrateDynamic(), true, "Migration")
+local k = Guild.DB().members[me0].kills
+eq(k["*Ruinen von Lordaeron"], nil, "alter Eintrag weg"); eq(k.ROL and k.ROL["Witherfang"] and k.ROL["The Baron"], true, "Kills uebernommen")
 print(string.format("%d Pruefungen, %d Fehler", n, fails))
 os.exit(fails == 0 and 0 or 1)

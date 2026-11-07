@@ -63,6 +63,7 @@ Ach.FINAL = {
     SM = { "Herod", "Scarlet Commander Mograine", "High Inquisitor Whitemane" },
     DME = { "King Gordok", "Prince Tortheldrin", "Immol'thar" },
     STRAT = { "Baron Rivendare", "Balnazzar" },
+    ROL = { "The Baron", "Lordaeron Captain" },
 }
 Ach.RAIDS = { ONY = true, MC = true, BWL = true, ZG = true, AQ20 = true, AQ40 = true, NAXX = true }
 
@@ -262,6 +263,7 @@ local DUNGEONS = {
     { "RFC", 10 }, { "WC", 10 }, { "DM", 10 }, { "SFK", 10 }, { "BFD", 10 }, { "STOCK", 10 }, { "GNOM", 10 },
     { "RFK", 15 }, { "SM", 15 }, { "RFD", 15 }, { "ULD", 15 }, { "ZF", 15 }, { "MARA", 15 }, { "ST", 15 },
     { "BRD", 20 }, { "LBRS", 20 }, { "UBRS", 20 }, { "DME", 20 }, { "STRAT", 20 }, { "SCHOLO", 20 },
+    { "HOT", 15 }, { "ROL", 15 }, { "EXW", 10 }, { "DAL", 20 }, { "DRC", 15 },
 }
 local RAIDS = { { "ONY", 25 }, { "ZG", 25 }, { "AQ20", 25 }, { "MC", 30 }, { "BWL", 35 }, { "AQ40", 40 }, { "NAXX", 50 } }
 local BIG_RAIDS = { ONY = true, MC = true, BWL = true, AQ40 = true, NAXX = true }

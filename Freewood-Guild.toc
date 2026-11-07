@@ -3,7 +3,7 @@
 ## Notes: Guild module of the Freewood family: member table, favourite groups, level ranking, guild orders, requests, instance overview and map positions.
 ## Notes-deDE: Gilden-Modul der Freewood-Familie: Mitgliedertabelle, Favoritengruppen, Level-Ranking, Gildenaufträge, Anfragen, Instanz-Übersicht und Kartenpositionen.
 ## Author: Lacustat
-## Version: 0.4.0
+## Version: 0.4.1
 ## Dependencies: Freewood-Core
 ## OptionalDeps: Freewood-Codex, Freewood-CodexData
 ## SavedVariables: FreewoodGuildDB

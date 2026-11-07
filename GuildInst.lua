@@ -54,6 +54,20 @@ Inst.LIST = {
     { "AQ20", "Ruins of Ahn'Qiraj", "Ruinen von Ahn'Qiraj", { "Kurinnaxx", "General Rajaxx", "Moam", "Buru the Gorger", "Ayamiss the Hunter", "Ossirian the Unscarred" } },
     { "AQ40", "Temple of Ahn'Qiraj", "Tempel von Ahn'Qiraj", { "The Prophet Skeram", "Battleguard Sartura", "Fankriss the Unyielding", "Viscidus", "Princess Huhuran", "Emperor Vek'lor", "Emperor Vek'nilash", "Ouro", "C'Thun" } },
     { "NAXX", "Naxxramas", "Naxxramas", { "Anub'Rekhan", "Grand Widow Faerlina", "Maexxna", "Noth the Plaguebringer", "Heigan the Unclean", "Loatheb", "Instructor Razuvious", "Gothik the Harvester", "Patchwerk", "Grobbulus", "Gluth", "Thaddius", "Sapphiron", "Kel'Thuzad" } },
+    -- Forever: neue Dungeons (nur anhaengen, die Boss-Reihenfolge ist Teil des Netzwerkformats)
+    { "HOT", "Hall of Thanes", "Halle der Thane", { "Faldrim Anvilmar", "Magmatus", "Plunder", "Durgen Dirgehammer" } },
+    { "ROL", "Ruins of Lordaeron", "Ruinen von Lordaeron", { "Witherfang", "The Abandoned", "Bjork", "Rath'mael", "Viktor the Vile", "The Baron", "Lordaeron Captain" } },
+    { "EXW", "Excavation Site: Wetlands", "Ausgrabungsstätte: Sumpfland", { "Saltspine", "Shadetooth", "Relic Guardian" } },
+    { "DAL", "City of Dalaran", "Stadt Dalaran", { "Atrexis the Grave Knight", "Arcane Anomaly", "Unstable Sentinel", "Fel Ancient", "Mana Devourer", "Arcanic Enigma", "Lyn the Ignored", "Shade of the Archmage" } },
+    { "DRC", "The Drowned City", "Die versunkene Stadt", { "Var'Taka", "Min'loth the Serpent" } },
+}
+
+-- zusaetzliche Boss-Namen (DE und Alternativnamen) -> Name in der Liste
+Inst.ALIAS = {
+    ["der schlächter"] = "The Baron", ["the butcher"] = "The Baron", ["der baron"] = "The Baron",
+    ["welkzahn"] = "Witherfang", ["der verlassene"] = "The Abandoned", ["viktor der Üble"] = "Viktor the Vile", ["viktor der üble"] = "Viktor the Vile",
+    ["hauptmann von lordaeron"] = "Lordaeron Captain", ["schleppweg"] = "Plunder", ["reliktwächter"] = "Relic Guardian",
+    ["lyn der ignorierte"] = "Lyn the Ignored", ["schemen des erzmagiers"] = "Shade of the Archmage",
 }
 
 local byId, byName = {}, {}
@@ -113,7 +127,7 @@ function Inst.Canon(instName, bossName)
     if type(boss) == "string" then
         local lo = string.lower(boss)
         local m = BuildDeMap()
-        local en = m.toEn[lo]
+        local en = Inst.ALIAS[lo] or m.toEn[lo]
         if en then boss = en; lo = string.lower(en) end
         if e and e.idx[lo] then boss = e.bosses[e.idx[lo]] end
         if not e then
@@ -399,6 +413,34 @@ local function Register()
         if G.RequestRaidInfo then pcall(G.RequestRaidInfo) end
     end)
 end
+-- alte dynamische Eintraege ("*Name") in die feste Liste ueberfuehren, sobald es dazu einen Eintrag gibt
+function Inst.MigrateDynamic()
+    Index()
+    local changed = false
+    for _, r in pairs(Guild.DB().members) do
+        if r.kills then
+            local moves = {}
+            for id in pairs(r.kills) do
+                if string.sub(id, 1, 1) == "*" then
+                    local e = byName[string.lower(string.sub(id, 2))]
+                    if e then moves[#moves + 1] = { id, e } end
+                end
+            end
+            for _, mv in ipairs(moves) do
+                for boss in pairs(r.kills[mv[1]]) do
+                    local _, b = Inst.Canon(mv[2].en, boss)
+                    r.kills[mv[2].id] = r.kills[mv[2].id] or {}
+                    r.kills[mv[2].id][b] = true
+                end
+                r.kills[mv[1]] = nil
+                changed = true
+            end
+        end
+    end
+    if changed then Inst.Changed() end
+    return changed
+end
+table.insert(Share.startHooks, function() pcall(Inst.MigrateDynamic) end)
 table.insert(Share.startHooks, Register)
 
 ------------------------------------------------------------------------

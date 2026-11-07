@@ -53,6 +53,7 @@ Guild.SETTINGS = {
     miniSize = 14,           -- Symbolgroesse auf der Minimap (8 bis 32)
     headShow = true,         -- Affensymbol ueber dem Kopf von Gildenmitgliedern
     headSize = 28,           -- Symbolgroesse in Pixeln (16 bis 64)
+    achNotify = true,        -- Hinweisfenster, wenn die Gilde einen Erfolg schafft
     headPlates = true,       -- dafuer Plaketten freundlicher Spieler einschalten, ihr Bild ausblenden
 }
 
@@ -81,13 +82,23 @@ local function OwnRealm()
     return string.lower((string.gsub(tostring(r or ""), "[%s%-]", "")))
 end
 
+-- Eigener Realm hat mehrere Schreibweisen (Forever: GetNormalizedRealmName, GetRealmName, UnitFullName liefert den Nachnamen)
+local function IsOwnRealmVariant(r)
+    if r == OwnRealm() then return true end
+    if G.GetRealmName then
+        local ok, v = pcall(G.GetRealmName)
+        if ok and type(v) == "string" and string.lower((string.gsub(v, "[%s%-]", ""))) == r then return true end
+    end
+    return false
+end
+
 -- Schluessel: Kleinschreibung, eigener Realm abgeschnitten ("Name-Realm" -> "name")
 function Guild.Key(name)
     if type(name) ~= "string" or name == "" then return nil end
     local base, realm = string.match(name, "^(.-)%-([^%-]+)$")
     if base and base ~= "" then
         local r = string.lower((string.gsub(realm, "[%s]", "")))
-        if r == OwnRealm() then name = base end
+        if IsOwnRealmVariant(r) then name = base end
     end
     return string.lower(name)
 end
@@ -103,10 +114,65 @@ function Guild.Display(name)
     return name
 end
 
-function Guild.SelfName()
+-- Forever: Charaktere haben Vor- und Nachnamen. UnitName liefert nur den Vornamen ("Pinky"), UnitFullName
+-- Vor- und Nachnamen getrennt ("Pinky", "Freewood"); die Gilde sieht "Pinky Freewood". Ohne den Nachnamen
+-- bekam jeder Spieler zwei Eintraege (eigener Satz und das eigene Echo der Gildennachricht).
+function Guild.SelfFirstName()
     local n = G.UnitName and G.UnitName("player")
     if type(n) == "string" and not Secret(n) then return n end
     return nil
+end
+
+function Guild.SelfName()
+    if G.UnitFullName then
+        local ok, n, second = pcall(G.UnitFullName, "player")
+        if ok and type(n) == "string" and not Secret(n) and n ~= "" then
+            if type(second) == "string" and not Secret(second) and second ~= ""
+                and string.lower((string.gsub(second, "[%s%-]", ""))) ~= OwnRealm() and not IsOwnRealmVariant(string.lower((string.gsub(second, "[%s%-]", "")))) then
+                return n .. " " .. second
+            end
+            return n
+        end
+    end
+    return Guild.SelfFirstName()
+end
+
+-- Alte Eintraege unter dem Vornamen ("pinky") in den vollen Namen ("pinky freewood") ueberfuehren
+local function MergeInto(dst, src)
+    for k, v in pairs(src) do
+        if dst[k] == nil then
+            dst[k] = v
+        elseif type(dst[k]) == "table" and type(v) == "table" then
+            MergeInto(dst[k], v)
+        end
+    end
+end
+
+function Guild.MigrateSelf()
+    local new, first = Guild.SelfKey(), Guild.SelfFirstName()
+    local old = first and string.lower(first)
+    if not new or not old or old == new then return false end
+    local db = Guild.DB()
+    local moved = false
+    if db.members[old] then
+        db.members[new] = db.members[new] or {}
+        MergeInto(db.members[new], db.members[old])
+        db.members[new].self = true
+        db.members[old] = nil
+        moved = true
+    end
+    if db.races and db.races[old] then
+        db.races[new] = db.races[new] or db.races[old]
+        db.races[old] = nil
+    end
+    local chars = db.fav and db.fav.chars
+    if chars and chars[old] then
+        chars[new] = chars[new] or chars[old]
+        chars[old] = nil
+        moved = true
+    end
+    if moved and Guild.Changed then Guild.Changed() end
+    return moved
 end
 
 function Guild.SelfKey()

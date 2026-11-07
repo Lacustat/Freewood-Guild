@@ -643,6 +643,7 @@ function Share.Start()
         Share.Request(true)
     end)
     Share.After(30, function() Share.SendGold() end)
+    pcall(Guild.MigrateSelf)
     for _, hook in ipairs(Share.startHooks) do pcall(hook) end
 end
 

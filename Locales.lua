@@ -150,6 +150,9 @@ FW:AddLocale("enUS", {
     GUILD_SET_MAPSIZE = "Icon size on the map: %d px",
     GUILD_SET_MINISHOW = "Show guild members on the minimap",
     GUILD_SET_MINISIZE = "Icon size on the minimap: %d px",
+    GUILD_SET_HEADSHOW = "Show the monkey icon above guild members' heads (not your own)",
+    GUILD_SET_HEADSIZE = "Icon size above heads: %d px",
+    GUILD_SET_HEADPLATES = "Turn on name plates of friendly players for this and hide their picture (only the icon stays)",
 })
 
 FW:AddLocale("deDE", {
@@ -296,4 +299,7 @@ FW:AddLocale("deDE", {
     GUILD_SET_MAPSIZE = "Symbolgröße auf der Karte: %d px",
     GUILD_SET_MINISHOW = "Gildenmitglieder auf der Minimap anzeigen",
     GUILD_SET_MINISIZE = "Symbolgröße auf der Minimap: %d px",
+    GUILD_SET_HEADSHOW = "Affensymbol über dem Kopf von Gildenmitgliedern anzeigen (nicht beim eigenen Charakter)",
+    GUILD_SET_HEADSIZE = "Symbolgröße über dem Kopf: %d px",
+    GUILD_SET_HEADPLATES = "Dafür Namensplaketten freundlicher Spieler einschalten und ihr Bild ausblenden (nur das Symbol bleibt)",
 })

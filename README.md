@@ -1,6 +1,6 @@
 # Freewood-Guild
 
-**Deutsch & English · German & English.** Autor · Author: Lacustat. Version 0.3.5 · Interface 16001 (World of Warcraft: Forever).
+**Deutsch & English · German & English.** Autor · Author: Lacustat. Version 0.3.6 · Interface 16001 (World of Warcraft: Forever).
 
 ## Inhalt · Contents
 - [Deutsch](#deutsch)
@@ -21,7 +21,7 @@ Das Gilden-Modul der Freewood-Familie: eine Mitgliedertabelle mit Berufen, Favor
 - **Gildenaufträge:** Beruf und Rezept (aus den Rezepten der Mitglieder), Menge, Notiz, Materialliste mit „habe ich / fehlt“. Jeder darf einstellen, übernehmen („Mach ich“) und als erledigt markieren. Löschen dürfen Ersteller, Gildenleiter und Eigentümer. Nach 7 Tagen verschwindet alles von selbst.
 - **Anfragen:** wie Aufträge, aber auch mit beliebigen Items (Suche über Freewood-CodexData) und Tooltips.
 - **Instanz-Übersicht:** alle Dungeons und Raids mit Bossen; Mausüberfahrt zeigt, wer den Boss getötet hat; Filter pro Spieler. Quellen: Boss-Kills des Spiels (`ENCOUNTER_END`), `BOSS_KILL` und gesperrte Instanzen.
-- **Karte:** Gildenmitglieder auf der Weltkarte (Affenkopf, Gildenleiter mit Krone). In den Einstellungen ein-/ausschaltbar, eigene Position teilbar, Symbolgröße 8 bis 64 Pixel. Ab 0.3.5 auch auf der Minimap (Einstellung, Symbolgröße 8 bis 32 Pixel); die Position wird etwa alle 10 Sekunden gesendet, auf der Minimap werden die Symbole in Laufrichtung fortgeschrieben. Nicht im Spiel geprüft.
+- **Karte:** Gildenmitglieder auf der Weltkarte (Affenkopf, Gildenleiter mit Krone). In den Einstellungen ein-/ausschaltbar, eigene Position teilbar, Symbolgröße 8 bis 64 Pixel. Ab 0.3.5 auch auf der Minimap (Einstellung, Symbolgröße 8 bis 32 Pixel); die Position wird etwa alle 10 Sekunden gesendet, auf der Minimap werden die Symbole in Laufrichtung fortgeschrieben. Nicht im Spiel geprüft. Ab 0.3.6: Affensymbol (Gildenleiter mit Krone) über dem Kopf von Gildenmitgliedern, nicht beim eigenen Charakter; ein-/ausschaltbar, Größe 16 bis 64 Pixel. Es hängt an der Namensplakette: Die Einstellung „Plaketten freundlicher Spieler“ wird dafür eingeschaltet (alter Wert wird gemerkt und beim Ausschalten zurückgesetzt), das Plakettenbild bleibt ausgeblendet, nur das Symbol ist zu sehen. Nur du siehst es. Nicht im Spiel geprüft.
 - **Symbole:** Affenkopf für Mitglieder, Affenkopf mit Krone für den Gildenleiter (`Media\affen_mitglied.tga`, `Media\ober_affe.tga`).
 - **Befehle:** `/fwguild` (öffnen), `/fwguild probe` (prüft, was das Spiel liefert), `/fwguild share` (Daten neu senden), `/fwguild refresh`, `/fwguild sendtest` (misst die Sendegrenze des Spiels), `/fwguild stats` (Sende-Statistik).
 
@@ -53,7 +53,7 @@ The guild module of the Freewood family: a member table with professions, favour
 - **Guild orders:** profession and recipe (from members' recipes), quantity, note, material list with "have / missing". Anyone can post, take ("I'll do it") and mark done. The creator, the guild master and owners can delete. Everything vanishes after 7 days.
 - **Requests:** like orders, but also any item (search via Freewood-CodexData) with tooltips.
 - **Instance overview:** all dungeons and raids with bosses; hover shows who killed a boss; per-player filter. Sources: the game's boss kills (`ENCOUNTER_END`), `BOSS_KILL` and saved instances.
-- **Map:** guild members on the world map (monkey head, guild master with crown). Switchable in the settings, own position shareable, icon size 8 to 64 pixels. Since 0.3.5 also on the minimap (setting, icon size 8 to 32 pixels); the position is sent about every 10 seconds and the minimap icons are extrapolated along the movement. Not verified in game.
+- **Map:** guild members on the world map (monkey head, guild master with crown). Switchable in the settings, own position shareable, icon size 8 to 64 pixels. Since 0.3.5 also on the minimap (setting, icon size 8 to 32 pixels); the position is sent about every 10 seconds and the minimap icons are extrapolated along the movement. Not verified in game. Since 0.3.6: monkey icon (guild master with crown) above guild members' heads, not on your own character; switchable, size 16 to 64 pixels. It hangs on the name plate: the “friendly player name plates” game setting is turned on for it (the old value is remembered and restored when switched off), the plate picture stays hidden and only the icon shows. Only you see it. Not verified in game.
 - **Icons:** monkey head for members, crowned monkey head for the guild master (`Media\affen_mitglied.tga`, `Media\ober_affe.tga`).
 - **Commands:** `/fwguild` (open), `/fwguild probe` (checks what the game provides), `/fwguild share` (resend data), `/fwguild refresh`, `/fwguild sendtest` (measures the game's send limit), `/fwguild stats` (send statistics).
 

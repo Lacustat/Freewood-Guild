@@ -51,6 +51,9 @@ Guild.SETTINGS = {
     mapSize = 24,            -- Symbolgroesse in Pixeln (8 bis 64)
     mapMini = true,          -- Gildenmitglieder auf der Minimap zeigen
     miniSize = 14,           -- Symbolgroesse auf der Minimap (8 bis 32)
+    headShow = true,         -- Affensymbol ueber dem Kopf von Gildenmitgliedern
+    headSize = 28,           -- Symbolgroesse in Pixeln (16 bis 64)
+    headPlates = true,       -- dafuer Plaketten freundlicher Spieler einschalten, ihr Bild ausblenden
 }
 
 function Guild.DB()

@@ -741,7 +741,7 @@ if UI.RegisterSettingsSection then
     UI:RegisterSettingsSection("guild-module", {
         category = "general",
         order = 60,
-        height = 420,
+        height = 540,
         build = function(parent)
             local L = FW.L
             local f, stack = UI.CreateSection(parent, L.GUILD_SET_TITLE)
@@ -784,6 +784,26 @@ if UI.RegisterSettingsSection then
             miniSlider.onText = function(v) miniLabel:SetText(string.format(L.GUILD_SET_MINISIZE, v)) end
             stack:Add(miniSlider, { height = 20, gap = 4 })
             f.miniSlider = miniSlider
+            local function Apply() if Guild.Head and Guild.Head.Apply then Guild.Head.Apply() end end
+            stack:Add(UI.CreateCheckbox(f, L.GUILD_SET_HEADSHOW,
+                function() return Guild.Setting("headShow") ~= false end,
+                function(v) Guild.DB().settings.headShow = v and true or false; Apply() end), { fit = true })
+            stack:Add(UI.CreateCheckbox(f, L.GUILD_SET_HEADPLATES,
+                function() return Guild.Setting("headPlates") ~= false end,
+                function(v) Guild.DB().settings.headPlates = v and true or false; Apply() end), { fit = true })
+            local headLabel = UI.CreateLabel(f, "", { size = 12 })
+            stack:Add(headLabel, { fit = true, gap = 8 })
+            local headSlider = UI.CreateSlider(f, 240, {
+                min = 16, max = 64, step = 2,
+                get = function() return tonumber(Guild.Setting("headSize")) or 28 end,
+                set = function(v)
+                    Guild.DB().settings.headSize = v
+                    Apply()
+                end,
+            })
+            headSlider.onText = function(v) headLabel:SetText(string.format(L.GUILD_SET_HEADSIZE, v)) end
+            stack:Add(headSlider, { height = 20, gap = 4 })
+            f.headSlider = headSlider
             local note = UI.CreateLabel(f, L.GUILD_SET_NOTE, { size = 11, color = "textDim", justifyV = "TOP" })
             note:SetWordWrap(true)
             stack:Add(note, { height = 44, gap = 8 })
@@ -792,6 +812,7 @@ if UI.RegisterSettingsSection then
         refresh = function(frame)
             if frame.slider then frame.slider:Refresh() end
             if frame.miniSlider then frame.miniSlider:Refresh() end
+            if frame.headSlider then frame.headSlider:Refresh() end
         end,
     })
 end

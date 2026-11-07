@@ -162,5 +162,17 @@ Guild.DB().members[me0].kills = { ["*Ruinen von Lordaeron"] = { ["Welkzahn"] = t
 eq(Inst.MigrateDynamic(), true, "Migration")
 local k = Guild.DB().members[me0].kills
 eq(k["*Ruinen von Lordaeron"], nil, "alter Eintrag weg"); eq(k.ROL and k.ROL["Witherfang"] and k.ROL["The Baron"], true, "Kills uebernommen")
+
+-- Instanzen ohne Bossliste
+local alc = Inst.Get("ALC")
+eq(alc ~= nil and alc.pending and #alc.bosses == 0, true, "ALC wartet auf Daten")
+Inst.AddKill(me0, "ALC", "Blazeroar")
+local enc = Inst.Encode(me0)
+eq(enc:find("ALC^Blazeroar", 1, true) ~= nil, true, "Name wird gesendet: " .. enc)
+local dec = Inst.Decode("ALC^Blazeroar~Cinder")
+eq(dec.ALC and dec.ALC.Blazeroar and dec.ALC.Cinder, true, "Decode mit Namen")
+local found
+for _, e in ipairs(Inst.AllInstances()) do if e.id == "ALC" then found = e end end
+eq(found and #found.bosses, 1, "gelernter Boss in der Liste")
 print(string.format("%d Pruefungen, %d Fehler", n, fails))
 os.exit(fails == 0 and 0 or 1)

@@ -60,6 +60,11 @@ Inst.LIST = {
     { "EXW", "Excavation Site: Wetlands", "Ausgrabungsstätte: Sumpfland", { "Saltspine", "Shadetooth", "Relic Guardian" } },
     { "DAL", "City of Dalaran", "Stadt Dalaran", { "Atrexis the Grave Knight", "Arcane Anomaly", "Unstable Sentinel", "Fel Ancient", "Mana Devourer", "Arcanic Enigma", "Lyn the Ignored", "Shade of the Archmage" } },
     { "DRC", "The Drowned City", "Die versunkene Stadt", { "Var'Taka", "Min'loth the Serpent" } },
+    -- Bossliste noch unbekannt: Eintrag ohne Bosse, gemeldete Kills werden mit Namen gespeichert und geteilt
+    { "KRO", "Krol'dok Stronghold", "Krol'dok-Festung", {}, "40-55" },
+    { "ALC", "Alcaz Island Prison", "Alcaz-Gefängnis", {}, "48-53" },
+    { "BMH", "Blackmaw Hold", "Schwarzmaulfeste", {}, "55-60" },
+    { "SHT", "Shaper's Terrace", "Terrasse des Formers", {}, "58-60" },
 }
 
 -- zusaetzliche Boss-Namen (DE und Alternativnamen) -> Name in der Liste
@@ -74,7 +79,7 @@ local byId, byName = {}, {}
 local function Index()
     if next(byId) then return end
     for _, d in ipairs(Inst.LIST) do
-        local e = { id = d[1], en = d[2], de = d[3], bosses = d[4], idx = {} }
+        local e = { id = d[1], en = d[2], de = d[3], bosses = d[4], idx = {}, levels = d[5], pending = #d[4] == 0 }
         for i, b in ipairs(e.bosses) do e.idx[string.lower(b)] = i end
         byId[e.id] = e
         byName[string.lower(e.en)] = e
@@ -215,7 +220,23 @@ end
 function Inst.AllInstances()
     Index()
     local out = {}
-    for _, d in ipairs(Inst.LIST) do out[#out + 1] = byId[d[1]] end
+    for _, d in ipairs(Inst.LIST) do
+        local e = byId[d[1]]
+        if e.pending then
+            local c = { id = e.id, en = e.en, de = e.de, levels = e.levels, pending = true, bosses = {}, idx = {} }
+            for _, r in pairs(Guild.DB().members) do
+                local k = r.kills and r.kills[e.id]
+                if k then
+                    for boss in pairs(k) do
+                        if not c.idx[string.lower(boss)] then c.bosses[#c.bosses + 1] = boss; c.idx[string.lower(boss)] = #c.bosses end
+                    end
+                end
+            end
+            table.sort(c.bosses)
+            e = c
+        end
+        out[#out + 1] = e
+    end
     local extra = {}
     for _, r in pairs(Guild.DB().members) do
         if r.kills then
@@ -279,7 +300,7 @@ function Inst.Encode(key)
     for _, id in ipairs(ids) do
         local e = byId[id]
         local items = {}
-        if e then
+        if e and not e.pending then
             for boss in pairs(r.kills[id]) do
                 local i = e.idx[string.lower(boss)]
                 if i then items[#items + 1] = i end
@@ -303,12 +324,12 @@ function Inst.Decode(text)
         local id, rest = string.match(chunk, "^([^%^]+)%^(.*)$")
         if id and rest then
             local e = byId[id]
-            if e then
+            if e and not e.pending then
                 for n in string.gmatch(rest, "%d+") do
                     local boss = e.bosses[tonumber(n)]
                     if boss then out[id] = out[id] or {}; out[id][boss] = true end
                 end
-            elseif string.sub(id, 1, 1) == "*" and #id <= 40 then
+            elseif (e and e.pending or string.sub(id, 1, 1) == "*") and #id <= 40 then
                 local count = 0
                 for boss in string.gmatch(rest, "[^~]+") do
                     count = count + 1
@@ -489,6 +510,9 @@ if UI and W and Guild.RegisterPage then
         right:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
         local rtitle = UI.CreateLabel(right.child, "", { font = "heading", size = 15, color = "goldLight" })
         rtitle:SetPoint("TOPLEFT", right.child, "TOPLEFT", 4, -2)
+        local pendingLbl = UI.CreateLabel(f, L.INST_PENDING, { size = 12, color = "textDim" })
+        pendingLbl:SetPoint("TOPLEFT", f, "TOPLEFT", 248, -70)
+        pendingLbl:Hide()
         local empty = UI.CreateLabel(f, L.INST_NONE, { size = 12, color = "textDim" })
         empty:SetPoint("TOPLEFT", f, "TOPLEFT", 248, -70)
 
@@ -527,7 +551,7 @@ if UI and W and Guild.RegisterPage then
                 b:ClearAllPoints()
                 b:SetPoint("TOPLEFT", left.child, "TOPLEFT", 0, -(i - 1) * 27)
                 local n, total = Inst.Count(e, f.player)
-                b:SetLabel(string.format("%s  %d/%d", Inst.DisplayName(e), n, total))
+                b:SetLabel(e.pending and (Inst.DisplayName(e) .. "  " .. (n > 0 and (n .. "/?") or "?")) or string.format("%s  %d/%d", Inst.DisplayName(e), n, total))
                 b:SetStyle(e.id == f.selected and "primary" or "default")
                 b:SetScript("OnClick", function() f.selected = e.id; f.Refresh() end)
                 b:Show()
@@ -538,7 +562,8 @@ if UI and W and Guild.RegisterPage then
             local cur
             for _, e in ipairs(all) do if e.id == f.selected then cur = e end end
             cur = cur or all[1]
-            rtitle:SetText(cur and Inst.DisplayName(cur) or "")
+            rtitle:SetText(cur and (Inst.DisplayName(cur) .. (cur.levels and ("  (" .. cur.levels .. ")") or "")) or "")
+            if cur and cur.pending and #cur.bosses == 0 then pendingLbl:Show() else pendingLbl:Hide() end
             local bosses = cur and cur.bosses or {}
             for i, boss in ipairs(bosses) do
                 local r = bRows[i]

@@ -49,6 +49,8 @@ Guild.SETTINGS = {
     mapShow = true,          -- Gildenmitglieder auf der Weltkarte zeigen
     mapShare = true,         -- eigene Position teilen
     mapSize = 24,            -- Symbolgroesse in Pixeln (8 bis 64)
+    mapMini = true,          -- Gildenmitglieder auf der Minimap zeigen
+    miniSize = 14,           -- Symbolgroesse auf der Minimap (8 bis 32)
 }
 
 function Guild.DB()

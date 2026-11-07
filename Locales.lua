@@ -148,6 +148,8 @@ FW:AddLocale("enUS", {
     GUILD_SET_MAPSHOW = "Show guild members on the world map",
     GUILD_SET_MAPSHARE = "Share my position with the guild",
     GUILD_SET_MAPSIZE = "Icon size on the map: %d px",
+    GUILD_SET_MINISHOW = "Show guild members on the minimap",
+    GUILD_SET_MINISIZE = "Icon size on the minimap: %d px",
 })
 
 FW:AddLocale("deDE", {
@@ -292,4 +294,6 @@ FW:AddLocale("deDE", {
     GUILD_SET_MAPSHOW = "Gildenmitglieder auf der Weltkarte anzeigen",
     GUILD_SET_MAPSHARE = "Meine Position mit der Gilde teilen",
     GUILD_SET_MAPSIZE = "Symbolgröße auf der Karte: %d px",
+    GUILD_SET_MINISHOW = "Gildenmitglieder auf der Minimap anzeigen",
+    GUILD_SET_MINISIZE = "Symbolgröße auf der Minimap: %d px",
 })

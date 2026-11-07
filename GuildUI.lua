@@ -741,7 +741,7 @@ if UI.RegisterSettingsSection then
     UI:RegisterSettingsSection("guild-module", {
         category = "general",
         order = 60,
-        height = 330,
+        height = 420,
         build = function(parent)
             local L = FW.L
             local f, stack = UI.CreateSection(parent, L.GUILD_SET_TITLE)
@@ -770,11 +770,28 @@ if UI.RegisterSettingsSection then
             slider.onText = function(v) sizeLabel:SetText(string.format(L.GUILD_SET_MAPSIZE, v)) end
             stack:Add(slider, { height = 20, gap = 4 })
             f.slider = slider
+            Box(L.GUILD_SET_MINISHOW, "mapMini")
+            local miniLabel = UI.CreateLabel(f, "", { size = 12 })
+            stack:Add(miniLabel, { fit = true, gap = 8 })
+            local miniSlider = UI.CreateSlider(f, 240, {
+                min = 8, max = 32, step = 1,
+                get = function() return tonumber(Guild.Setting("miniSize")) or 14 end,
+                set = function(v)
+                    Guild.DB().settings.miniSize = v
+                    if Guild.Map and Guild.Map.RefreshMini then pcall(Guild.Map.RefreshMini) end
+                end,
+            })
+            miniSlider.onText = function(v) miniLabel:SetText(string.format(L.GUILD_SET_MINISIZE, v)) end
+            stack:Add(miniSlider, { height = 20, gap = 4 })
+            f.miniSlider = miniSlider
             local note = UI.CreateLabel(f, L.GUILD_SET_NOTE, { size = 11, color = "textDim", justifyV = "TOP" })
             note:SetWordWrap(true)
             stack:Add(note, { height = 44, gap = 8 })
             return f
         end,
-        refresh = function(frame) if frame.slider then frame.slider:Refresh() end end,
+        refresh = function(frame)
+            if frame.slider then frame.slider:Refresh() end
+            if frame.miniSlider then frame.miniSlider:Refresh() end
+        end,
     })
 end

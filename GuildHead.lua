@@ -152,10 +152,16 @@ end
 -- Spieleinstellung "Plaketten freundlicher Spieler"
 ------------------------------------------------------------------------
 
+-- Forever kennt "nameplateShowFriends" nicht (liefert nil); die Retail-Namen werden der Reihe nach probiert
+local CVAR_NAMES = { "nameplateShowFriendlyPlayers", "nameplateShowFriends", "nameplateShowFriendlyPlayerNames" }
+Head.CVAR_NAMES = CVAR_NAMES
+
 local function CVarName()
     if not G.GetCVar then return nil end
-    local ok, v = pcall(G.GetCVar, "nameplateShowFriends")
-    if ok and v ~= nil then return "nameplateShowFriends", tostring(v) end
+    for _, n in ipairs(CVAR_NAMES) do
+        local ok, v = pcall(G.GetCVar, n)
+        if ok and v ~= nil then return n, tostring(v) end
+    end
     return nil
 end
 
@@ -194,6 +200,13 @@ function Head.DiagLines()
     local st = Guild.DB().settings
     local name, cur = CVarName()
     Add("Affe ueber dem Kopf: an=%s, Plaketten selbst einschalten=%s", tostring(Guild.Setting("headShow")), tostring(Guild.Setting("headPlates")))
+    local tried = {}
+    for _, n in ipairs(CVAR_NAMES) do
+        local okc, v = false, nil
+        if G.GetCVar then okc, v = pcall(G.GetCVar, n) end
+        tried[#tried + 1] = n .. "=" .. tostring(okc and v)
+    end
+    Add("Geprueft: %s", table.concat(tried, ", "))
     Add("Spieleinstellung %s = %s (gemerkter alter Wert: %s), Bild ausblenden=%s, offen wegen Kampf=%s", tostring(name), tostring(cur), tostring(st.origFriendlyPlayerPlates), tostring(hideFriendly), tostring(cvarPending))
     local NP = G.C_NamePlate
     local ok, plates = false, nil

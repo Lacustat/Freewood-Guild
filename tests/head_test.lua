@@ -97,6 +97,16 @@ cvars.nameplateShowFriends = "1"
 settings.headShow = true
 Head.Apply()
 assert(Head.Update("nameplate1") == "member")
+-- Forever: nur der Retail-Name existiert
+cvars.nameplateShowFriends = nil
+cvars.nameplateShowFriendlyPlayers = "0"
+settings.origFriendlyPlayerPlates = nil
+settings.headShow = true
+Head.Apply()
+assert(cvars.nameplateShowFriendlyPlayers == "1", "Retail-Name eingeschaltet: " .. tostring(cvars.nameplateShowFriendlyPlayers))
+settings.headShow = false
+Head.Apply()
+assert(cvars.nameplateShowFriendlyPlayers == "0", "Retail-Name zurueckgesetzt")
 local dh = Head.DiagLines()
 assert(type(dh) == "table" and #dh >= 3, "Messzeilen Kopf")
 print("OK")

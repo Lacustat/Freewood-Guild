@@ -792,6 +792,9 @@ if UI.RegisterSettingsSection then
             stack:Add(UI.CreateCheckbox(f, L.GUILD_SET_HEADPLATES,
                 function() return Guild.Setting("headPlates") ~= false end,
                 function(v) Guild.DB().settings.headPlates = v and true or false; Apply() end), { fit = true })
+            stack:Add(UI.CreateCheckbox(f, L.GUILD_SET_HEADBARS,
+                function() return Guild.Setting("headBars") ~= false end,
+                function(v) Guild.DB().settings.headBars = v and true or false; Apply() end), { fit = true })
             local headLabel = UI.CreateLabel(f, "", { size = 12 })
             stack:Add(headLabel, { fit = true, gap = 8 })
             local headSlider = UI.CreateSlider(f, 240, {

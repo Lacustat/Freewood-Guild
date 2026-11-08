@@ -54,7 +54,8 @@ Guild.SETTINGS = {
     headShow = true,         -- Affensymbol ueber dem Kopf von Gildenmitgliedern
     headSize = 28,           -- Symbolgroesse in Pixeln (16 bis 64)
     achNotify = true,        -- Hinweisfenster, wenn die Gilde einen Erfolg schafft
-    headPlates = true,       -- dafuer Plaketten freundlicher Spieler einschalten, ihr Bild ausblenden
+    headPlates = true,       -- dafuer Plaketten freundlicher Spieler einschalten
+    headBars = true,         -- Lebensbalken und Name der Plakette bleiben sichtbar (aus: nur das Symbol)
 }
 
 function Guild.DB()

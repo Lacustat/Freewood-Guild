@@ -120,7 +120,7 @@ function Head.Update(unit)
     local kind = show and Head.Classify(unit) or nil
     -- Plakettenbild freundlicher Spieler ausblenden, wenn so gewuenscht
     local friendly = G.UnitIsPlayer and G.UnitIsPlayer(unit) and not (G.UnitCanAttack and G.UnitCanAttack("player", unit))
-    SetPlateVisible(plate, hideFriendly and show and friendly and not (G.UnitIsUnit and G.UnitIsUnit(unit, "player")))
+    SetPlateVisible(plate, hideFriendly and Guild.Setting("headBars") == false and show and friendly and not (G.UnitIsUnit and G.UnitIsUnit(unit, "player")))
     local f = icons[plate]
     if not kind then
         if f then f:Hide() end
@@ -199,7 +199,7 @@ function Head.DiagLines()
     local function Add(...) out[#out + 1] = string.format(...) end
     local st = Guild.DB().settings
     local name, cur = CVarName()
-    Add("Affe ueber dem Kopf: an=%s, Plaketten selbst einschalten=%s", tostring(Guild.Setting("headShow")), tostring(Guild.Setting("headPlates")))
+    Add("Affe ueber dem Kopf: an=%s, Plaketten selbst einschalten=%s, Lebensbalken zeigen=%s", tostring(Guild.Setting("headShow")), tostring(Guild.Setting("headPlates")), tostring(Guild.Setting("headBars") ~= false))
     local tried = {}
     for _, n in ipairs(CVAR_NAMES) do
         local okc, v = false, nil

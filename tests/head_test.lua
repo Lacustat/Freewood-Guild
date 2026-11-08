@@ -82,8 +82,17 @@ assert(Head.Update("nameplate1") == "member")
 assert(Head.Update("nameplate2") == "master")
 assert(Head.Update("nameplate3") == nil)
 assert(Head.Update("nameplate4") == nil)
--- Ausblenden des Plakettenbilds fuer freundliche Spieler
+-- Standard (Lebensbalken zeigen = an): Plakette bleibt sichtbar
+assert(plates.nameplate4.UnitFrame.alpha ~= 0, "Standard: Plakettenbild bleibt sichtbar")
+-- Lebensbalken aus: Plakettenbild freundlicher Spieler wird ausgeblendet
+settings.headBars = false
+Head.Update("nameplate4")
 assert(plates.nameplate4.UnitFrame.alpha == 0, "Plakettenbild ausgeblendet")
+settings.headBars = true
+Head.Update("nameplate4")
+assert(plates.nameplate4.UnitFrame.alpha == 1, "wieder sichtbar: " .. tostring(plates.nameplate4.UnitFrame.alpha))
+settings.headBars = false
+Head.Update("nameplate4")
 -- Groesse und Aus
 settings.headSize = 40
 assert(Head.Size() == 40)

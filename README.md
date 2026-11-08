@@ -1,6 +1,6 @@
 # Freewood-Guild
 
-**Deutsch & English · German & English.** Autor · Author: Lacustat. Version 0.4.4 · Interface 16001 (World of Warcraft: Forever).
+**Deutsch & English · German & English.** Autor · Author: Lacustat. Version 0.4.5 · Interface 16001 (World of Warcraft: Forever).
 
 ## Inhalt · Contents
 - [Deutsch](#deutsch)
@@ -21,9 +21,11 @@ Das Gilden-Modul der Freewood-Familie: eine Mitgliedertabelle mit Berufen, Favor
 - **Gildenaufträge:** Beruf und Rezept (aus den Rezepten der Mitglieder), Menge, Notiz, Materialliste mit „habe ich / fehlt“. Jeder darf einstellen, übernehmen („Mach ich“) und als erledigt markieren. Löschen dürfen Ersteller, Gildenleiter und Eigentümer. Nach 7 Tagen verschwindet alles von selbst.
 - **Anfragen:** wie Aufträge, aber auch mit beliebigen Items (Suche über Freewood-CodexData) und Tooltips.
 - **Instanz-Übersicht:** alle Dungeons und Raids mit Bossen; Mausüberfahrt zeigt, wer den Boss getötet hat; Filter pro Spieler. Quellen: Boss-Kills des Spiels (`ENCOUNTER_END`), `BOSS_KILL` und gesperrte Instanzen.
+- **Lebensbalken beim Affen (0.4.5):** Neue Einstellung „Lebensbalken und Name des Spielers sichtbar lassen“ (Standard an): Die Plakette bleibt normal sichtbar, der Affe sitzt darüber. Ausgeschaltet bleibt nur der Affe, wie bisher.
 - **Affe ohne Namensbalken (0.4.4):** Forever kennt die Spieleinstellung `nameplateShowFriends` nicht (Messung: Wert nil), deshalb blieben die Balken freundlicher Spieler aus und der Affe war nur mit von Hand eingeschalteten Balken sichtbar. Jetzt wird `nameplateShowFriendlyPlayers` zuerst probiert, danach die älteren Namen; `/fwguild stats` zeigt, was geprüft wurde. Außerdem: Positionen anderer Karten (andere Zone) erscheinen nicht auf deiner Karte, das ist gewollt.
 - **Messzeilen (0.4.3):** `/fwguild stats` zeigt zusätzlich, wie viele Positionsmeldungen ankommen (und von wem), die eigene Position, die Karten-ID, wie viele Symbole auf Weltkarte und Minimap gezeichnet werden und was der Affe über dem Kopf mit den Namensbalken macht. Nur Ausgabe, am Verhalten ändert sich nichts.
 - **Dungeons ohne Bossliste (0.4.2):** Krol'dok-Festung (40-55), Alcaz-Gefängnis (48-53), Schwarzmaulfeste (55-60) und Terrasse des Formers (58-60) stehen in der Übersicht mit dem Hinweis „Bossliste noch nicht bekannt, es wird auf Daten gewartet“. Besiegte Bosse werden mit Namen gespeichert, mit der Gilde geteilt und erscheinen automatisch in der Liste.
+- **Health bar with the icon (0.4.5):** New setting "Keep the health bar and name of the player visible" (default on): the plate stays visible as normal and the icon sits above it. Off keeps only the icon, as before.
 - **Head icon without name plates (0.4.4):** Forever does not know the setting `nameplateShowFriends` (measured: nil), so the friendly-player plates stayed off and the icon only showed with plates switched on by hand. `nameplateShowFriendlyPlayers` is now tried first, then the older names; `/fwguild stats` shows what was checked. Also: positions on other maps (another zone) do not appear on your map, by design.
 - **Diagnostic lines (0.4.3):** `/fwguild stats` also shows how many position messages arrive (and from whom), your own position, the map ID, how many icons are drawn on the world map and minimap and what the head icon does with the name plates. Output only, behaviour is unchanged.
 - **Dungeons without a boss list (0.4.2):** Krol'dok Stronghold, Alcaz Island Prison, Blackmaw Hold and Shaper's Terrace are listed with a "waiting for data" note; bosses you defeat are stored by name, shared and shown automatically.

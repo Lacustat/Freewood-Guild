@@ -1,6 +1,6 @@
 # Freewood-Guild
 
-**Deutsch & English · German & English.** Autor · Author: Lacustat. Version 0.4.2 · Interface 16001 (World of Warcraft: Forever).
+**Deutsch & English · German & English.** Autor · Author: Lacustat. Version 0.4.3 · Interface 16001 (World of Warcraft: Forever).
 
 ## Inhalt · Contents
 - [Deutsch](#deutsch)
@@ -21,7 +21,9 @@ Das Gilden-Modul der Freewood-Familie: eine Mitgliedertabelle mit Berufen, Favor
 - **Gildenaufträge:** Beruf und Rezept (aus den Rezepten der Mitglieder), Menge, Notiz, Materialliste mit „habe ich / fehlt“. Jeder darf einstellen, übernehmen („Mach ich“) und als erledigt markieren. Löschen dürfen Ersteller, Gildenleiter und Eigentümer. Nach 7 Tagen verschwindet alles von selbst.
 - **Anfragen:** wie Aufträge, aber auch mit beliebigen Items (Suche über Freewood-CodexData) und Tooltips.
 - **Instanz-Übersicht:** alle Dungeons und Raids mit Bossen; Mausüberfahrt zeigt, wer den Boss getötet hat; Filter pro Spieler. Quellen: Boss-Kills des Spiels (`ENCOUNTER_END`), `BOSS_KILL` und gesperrte Instanzen.
+- **Messzeilen (0.4.3):** `/fwguild stats` zeigt zusätzlich, wie viele Positionsmeldungen ankommen (und von wem), die eigene Position, die Karten-ID, wie viele Symbole auf Weltkarte und Minimap gezeichnet werden und was der Affe über dem Kopf mit den Namensbalken macht. Nur Ausgabe, am Verhalten ändert sich nichts.
 - **Dungeons ohne Bossliste (0.4.2):** Krol'dok-Festung (40-55), Alcaz-Gefängnis (48-53), Schwarzmaulfeste (55-60) und Terrasse des Formers (58-60) stehen in der Übersicht mit dem Hinweis „Bossliste noch nicht bekannt, es wird auf Daten gewartet“. Besiegte Bosse werden mit Namen gespeichert, mit der Gilde geteilt und erscheinen automatisch in der Liste.
+- **Diagnostic lines (0.4.3):** `/fwguild stats` also shows how many position messages arrive (and from whom), your own position, the map ID, how many icons are drawn on the world map and minimap and what the head icon does with the name plates. Output only, behaviour is unchanged.
 - **Dungeons without a boss list (0.4.2):** Krol'dok Stronghold, Alcaz Island Prison, Blackmaw Hold and Shaper's Terrace are listed with a "waiting for data" note; bosses you defeat are stored by name, shared and shown automatically.
 - **Neue Forever-Dungeons (0.4.1):** Halle der Thane, Ruinen von Lordaeron, Ausgrabungsstätte: Sumpfland, Stadt Dalaran und Die versunkene Stadt stehen jetzt in der Instanzübersicht und bei den Erfolgen (Dungeon-, Gildenwissen-Erfolge). Bisherige Kills unter „*Ruinen von Lordaeron“ werden beim Anmelden übernommen (auch deutsche Bossnamen wie „Der Schlächter“ = The Baron). Krol'dok-Festung, Alcaz-Gefängnis, Schwarzmaulfeste und Terrasse des Formers fehlen noch (keine Bossliste bekannt); sie erscheinen dynamisch, sobald jemand dort einen Boss besiegt. Endboss von Lordaeron ist geraten (Baron oder Hauptmann).
 - **New Forever dungeons (0.4.1):** Hall of Thanes, Ruins of Lordaeron, Excavation Site: Wetlands, City of Dalaran and The Drowned City are now in the instance overview and the achievements. Old kills stored as "*Ruinen von Lordaeron" are migrated on login. Krol'dok Stronghold, Alcaz Prison, Blackmaw Hold and Shaper's Terrace are missing (no boss list known); they show up dynamically once someone kills a boss there. The Lordaeron final boss is a guess (Baron or Captain).

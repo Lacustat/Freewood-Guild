@@ -97,4 +97,6 @@ cvars.nameplateShowFriends = "1"
 settings.headShow = true
 Head.Apply()
 assert(Head.Update("nameplate1") == "member")
+local dh = Head.DiagLines()
+assert(type(dh) == "table" and #dh >= 3, "Messzeilen Kopf")
 print("OK")

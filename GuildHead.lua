@@ -187,6 +187,31 @@ function Head.ApplyPlateMode(forceOff)
     end
 end
 
+-- Messzeilen fuer /fwguild stats
+function Head.DiagLines()
+    local out = {}
+    local function Add(...) out[#out + 1] = string.format(...) end
+    local st = Guild.DB().settings
+    local name, cur = CVarName()
+    Add("Affe ueber dem Kopf: an=%s, Plaketten selbst einschalten=%s", tostring(Guild.Setting("headShow")), tostring(Guild.Setting("headPlates")))
+    Add("Spieleinstellung %s = %s (gemerkter alter Wert: %s), Bild ausblenden=%s, offen wegen Kampf=%s", tostring(name), tostring(cur), tostring(st.origFriendlyPlayerPlates), tostring(hideFriendly), tostring(cvarPending))
+    local NP = G.C_NamePlate
+    local ok, plates = false, nil
+    if NP and NP.GetNamePlates then ok, plates = pcall(NP.GetNamePlates) end
+    Add("Plaketten sichtbar: %s", (ok and type(plates) == "table") and tostring(#plates) or "?")
+    if ok and type(plates) == "table" then
+        for i, plate in ipairs(plates) do
+            if i > 6 then break end
+            local unit = plate.namePlateUnitToken or (plate.UnitFrame and plate.UnitFrame.unit)
+            local nm = unit and G.UnitName and select(2, pcall(G.UnitName, unit))
+            local uf = plate.UnitFrame
+            Add("  %s '%s': Mitglied=%s, Symbol=%s, Bildtransparenz=%s", tostring(unit), tostring(nm), tostring(unit and Head.Classify(unit)),
+                (icons[plate] and icons[plate]:IsShown()) and "ja" or "nein", (function() local ok2, al = pcall(function() return uf:GetAlpha() end); return (ok2 and type(al) == "number") and string.format("%.1f", al) or "?" end)())
+        end
+    end
+    return out
+end
+
 -- nach Aenderung einer Einstellung
 function Head.Apply()
     pcall(Head.ApplyPlateMode)

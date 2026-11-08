@@ -596,6 +596,12 @@ SlashCmdList["FREEWOODGUILD"] = function(msg)
         return
     elseif msg == "stats" then
         FW:Print(Guild.Share.Stats())
+        for _, mod in ipairs({ Guild.Map, Guild.Head }) do
+            if mod and mod.DiagLines then
+                local ok, lines = pcall(mod.DiagLines)
+                if ok then for _, l in ipairs(lines) do FW:Print(l) end else FW:Print("Messfehler: " .. tostring(lines)) end
+            end
+        end
         return
     elseif msg == "probe" then
         Guild.Probe()

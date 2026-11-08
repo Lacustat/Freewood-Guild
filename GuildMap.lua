@@ -337,6 +337,39 @@ function Map.RefreshMini()
     HideMini(used + 1)
 end
 
+-- Messzeilen fuer /fwguild stats
+function Map.DiagLines()
+    local out = {}
+    local function Add(...) out[#out + 1] = string.format(...) end
+    local d = Share.diag or {}
+    local kinds = {}
+    for k, v in pairs(d.byKind or {}) do kinds[#kinds + 1] = k .. "=" .. v end
+    table.sort(kinds)
+    Add("Empfang: %d Meldungen (ohne Namen %d, vom eigenen Namen %d); Arten: %s", d.recv or 0, d.noKey or 0, d.self or 0, #kinds > 0 and table.concat(kinds, " ") or "-")
+    if d.last then Add("Zuletzt von: '%s' (Schluessel '%s', Kanal %s, vor %d s)", tostring(d.last.sender), tostring(d.last.key), tostring(d.last.channel), math.floor(Clock() - d.last.at)) end
+    Add("Eigener Schluessel: '%s'", tostring(Guild.SelfKey()))
+    Add("Einstellungen: Karte zeigen=%s, Minimap=%s, Position teilen=%s", tostring(Guild.Setting("mapShow")), tostring(Guild.Setting("mapMini")), tostring(Guild.Setting("mapShare")))
+    local id, x, y = Map.OwnPosition()
+    Add("Eigene Position: %s", id and string.format("Karte %d, %.3f / %.3f", id, x, y) or "nicht lesbar")
+    local wm = G.WorldMapFrame
+    local okm, wid = false, nil
+    if wm and wm.GetMapID then okm, wid = pcall(wm.GetMapID, wm) end
+    Add("Weltkarte: Karten-ID %s, Ebene %s, Haken %s", okm and tostring(wid) or "?", Map.layer and "ja" or "nein", Map.hooked and "ja" or "nein")
+    local n, shown = 0, 0
+    for key, p in pairs(Map.Active()) do
+        n = n + 1
+        if n <= 6 then Add("  Position '%s': Karte %d, %.3f / %.3f, vor %d s", key, p.map, p.x, p.y, math.floor(Clock() - p.at)) end
+    end
+    Add("Aktive Positionen: %d", n)
+    for _, p in ipairs(pins) do if p:IsShown() then shown = shown + 1 end end
+    local mshown = 0
+    for _, p in ipairs(miniPins) do if p:IsShown() then mshown = mshown + 1 end end
+    Add("Gezeichnet: Weltkarte %d, Minimap %d", shown, mshown)
+    local b = PlayerBasis()
+    Add("Minimap-Berechnung: %s", b and ("Kontinent " .. tostring(b.cont)) or "keine Weltposition (C_Map.GetWorldPosFromMapPos)")
+    return out
+end
+
 function Map.Hook()
     if Map.hooked then return true end
     local wm = G.WorldMapFrame

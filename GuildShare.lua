@@ -502,11 +502,18 @@ local function SendRecipesAll()
     for profId, ids in pairs(rec.recipes) do Share.SendRecipes(profId, ids) end
 end
 
+Share.diag = { recv = 0, noKey = 0, self = 0, byKind = {}, last = nil }
+
 function Share.OnMessage(prefix, text, channel, sender)
     if prefix ~= PREFIX or type(text) ~= "string" or Secret(text) or Secret(sender) then return end
+    local d = Share.diag
+    d.recv = d.recv + 1
     local key = Guild.Key(sender)
-    if not key or key == Guild.SelfKey() then return end
+    if not key then d.noKey = d.noKey + 1; return end
+    if key == Guild.SelfKey() then d.self = d.self + 1; return end
+    d.last = { sender = sender, key = key, channel = channel, at = Clock() }
     local kind = string.sub(text, 1, 1)
+    d.byKind[kind] = (d.byKind[kind] or 0) + 1
     local body = string.sub(text, 3)
     if string.sub(text, 2, 2) ~= "|" then return end
     local custom = Share.handlers[kind]

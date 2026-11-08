@@ -73,4 +73,6 @@ end
 settings.mapMini = false
 Map.RefreshMini()
 for _, f in ipairs(frames) do assert(not (rawget(f, "shown") and rawget(f, "size")), "Pins sollten weg sein") end
+local dl = Map.DiagLines()
+assert(type(dl) == "table" and #dl >= 8, "Messzeilen Karte")
 print("OK")

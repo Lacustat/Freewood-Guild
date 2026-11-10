@@ -55,6 +55,9 @@ Guild.SETTINGS = {
     headSize = 28,           -- Symbolgroesse in Pixeln (16 bis 64)
     achNotify = true,        -- Hinweisfenster, wenn die Gilde einen Erfolg schafft
     headPlates = true,       -- dafuer Plaketten freundlicher Spieler einschalten
+    dungChat = true,         -- Zeile im Gildenchat, wenn man sich fuer einen Dungeon anmeldet
+    dungAutoGuild = false,   -- Einladungen von Gildenmitgliedern bei laufender Suche annehmen
+    dungAutoFriends = false, -- dasselbe fuer Freunde
     headBars = true,         -- Lebensbalken und Name der Plakette bleiben sichtbar (aus: nur das Symbol)
 }
 

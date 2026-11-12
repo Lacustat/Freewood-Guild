@@ -89,6 +89,29 @@ now = 160
 filters["CHAT_MSG_GUILD"](nil, "CHAT_MSG_GUILD", msg, "Anna")
 eq(Guild.DB().members["anna"] ~= nil, true, "eingeschaltet: gemerkt")
 
+-- Zweiter Weg: Shift+Klick im Zauberbuch (trade-Link ohne passende ID oder Zauberlink) zaehlt ueber die Beschriftung
+local ALCH, ENCH = Guild.ProfName(171), Guild.ProfName(333)
+local sp = T.Parse("|cff71d5ff|Hspell:2259:0|h[" .. ALCH .. "]|h|r")
+eq(#sp, 1, "Zauberlink mit Berufsnamen zaehlt")
+eq(sp[1].profId, 171, "Beruf aus dem Namen des Zauberlinks")
+eq(sp[1].kind, "spell", "Typ spell")
+eq(#T.Parse("|Hspell:133:0|h[Feuerball]|h"), 0, "anderer Zauber zaehlt nicht")
+eq(#T.Parse("|Hitem:2589|h[" .. ALCH .. "]|h"), 0, "Item-Link mit Berufsnamen zaehlt nicht")
+eq(#T.Parse("|Henchant:7418|h[" .. ENCH .. "]|h"), 1, "Verzauberlink mit Berufsnamen zaehlt")
+local mixed = T.Parse("|Htrade:Player-1-ABC:2018:164|h[Schmiedekunst]|h und |Hspell:2259:0|h[" .. ALCH .. "]|h")
+eq(#mixed, 2, "beide Wege in einer Zeile")
+now = 300
+Guild.DB().members["anna"] = nil
+eq(T.Process("Anna", "|Hspell:2259:0|h[" .. ALCH .. "]|h"), 1, "Zauberlink eines Mitglieds gemeldet")
+eq(Guild.DB().members["anna"].skills[171] ~= nil, true, "Beruf aus Zauberlink gemerkt")
+-- Fehlersuche
+printed = {}
+T.debug = true
+now = 310
+T.Process("Anna", "|Hspell:2259:0|h[" .. ALCH .. "]|h")
+eq(#printed >= 1 and printed[1]:find("Typ spell", 1, true) ~= nil, true, "Fehlersuche meldet Typ")
+T.debug = false
+
 -- Liste
 local list = T.List()
 eq(#list, 1, "ein Mitglied in der Liste")

@@ -626,6 +626,8 @@ SlashCmdList["FREEWOODGUILD"] = function(msg)
         if Guild.RecipeQuery then Guild.RecipeQuery.Run() end
     elseif msg == "trade" then
         if Guild.TradeLink then Guild.TradeLink.PrintList() end
+    elseif msg == "linkdebug" then
+        if Guild.TradeLink then Guild.TradeLink.ToggleDebug() end
     elseif msg == "refresh" then
         Guild.RequestRoster(true)
     else

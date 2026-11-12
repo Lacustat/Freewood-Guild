@@ -50,14 +50,28 @@ function T.SkillLine(data)
     return nil
 end
 
--- Rueckgabe: Liste { link = "trade:...", text = "|H...|h[Name]|h", label = "Name", profId = ... }
+-- Linktypen, die nie ein Beruf sind (auch wenn der Name zufaellig passt)
+local NOT_PROF = { item = true, quest = true, achievement = true, player = true, channel = true, currency = true, unit = true,
+    bnplayer = true, instancelock = true, journal = true, keystone = true, battlepet = true, garrmission = true }
+
+-- Rueckgabe: Liste { link = "trade:...", text = "|H...|h[Name]|h", label = "Name", profId = ..., kind = "trade"|"spell"|... }
+-- Zwei Wege, einen Beruf zu verlinken: die Sprechblase im Berufefenster (trade:-Link mit Beruf-ID) und Shift+Klick im Zauberbuch
+-- (trade:-Link oder, falls das Spiel keinen liefert, ein Zauberlink). Darum zaehlt jeder Link, dessen Beschriftung ein Beruf ist.
 function T.Parse(msg)
     local out = {}
     if type(msg) ~= "string" or Secret(msg) then return out end
-    for link, label in string.gmatch(msg, "|H(trade:[^|]*)|h(.-)|h") do
+    for link, label in string.gmatch(msg, "|H([^|]*)|h(.-)|h") do
+        local kind = string.lower(string.match(link, "^([^:]*)") or "")
         local name = string.gsub(string.gsub(label, "^%[", ""), "%]$", "")
-        local profId = T.SkillLine(link) or Guild.ProfByName(name)
-        out[#out + 1] = { link = link, text = "|H" .. link .. "|h" .. label .. "|h", label = name, profId = profId }
+        local profId
+        if kind == "trade" then
+            profId = T.SkillLine(link) or Guild.ProfByName(name)
+        elseif kind ~= "" and not NOT_PROF[kind] then
+            profId = Guild.ProfByName(name)
+        end
+        if kind == "trade" or profId then
+            out[#out + 1] = { link = link, text = "|H" .. link .. "|h" .. label .. "|h", label = name, profId = profId, kind = kind }
+        end
     end
     return out
 end
@@ -84,11 +98,34 @@ function T.Record(key, profId)
     return true
 end
 
+-- /fwguild linkdebug : jeden Beruf-Link im Chat mit Typ und Rohdaten melden (zeigt, was Shift+Klick und die Sprechblase senden)
+T.debug = false
+local dbgSeen = {}
+function T.DebugLinks(author, links)
+    local now = Clock()
+    for _, e in ipairs(links) do
+        local sig = tostring(author) .. "|" .. e.link
+        if not dbgSeen[sig] or now - dbgSeen[sig] > DEDUPE then
+            dbgSeen[sig] = now
+            local key = Guild.Key(author)
+            local member = key and Guild.rowByKey and Guild.rowByKey[key] and true or false
+            FW:Print("[Berufslink] " .. Guild.Display(author) .. ": Typ " .. tostring(e.kind) .. ", Name " .. tostring(e.label) ..
+                ", Beruf-ID " .. tostring(e.profId) .. ", Gildenmitglied " .. tostring(member) .. ", Daten " .. string.gsub(e.link, "\124", "!"))
+        end
+    end
+end
+
+function T.ToggleDebug()
+    T.debug = not T.debug
+    FW:Print("Berufslink-Fehlersuche: " .. (T.debug and "an (jeder Beruf-Link im Chat wird mit Typ und Daten gemeldet)" or "aus"))
+end
+
 -- Eine Chatzeile pruefen. Rueckgabe: Anzahl gemeldeter Links
 function T.Process(author, msg)
     if type(author) ~= "string" or author == "" or Secret(author) then return 0 end
     local links = T.Parse(msg)
     if #links == 0 then return 0 end
+    if T.debug then T.DebugLinks(author, links) end
     local key = Guild.Key(author)
     if not key or key == Guild.SelfKey() then return 0 end
     if not (Guild.rowByKey and Guild.rowByKey[key]) then return 0 end   -- nur Gildenmitglieder

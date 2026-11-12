@@ -98,6 +98,42 @@ function T.Record(key, profId)
     return true
 end
 
+-- Zauber-ID aus den Linkdaten: "trade:Player-1-ABC:4038:202" -> 4038 (die Berufsstufe des Spielers, z. B. Experte)
+function T.SpellId(data)
+    if type(data) ~= "string" then return nil end
+    local f = {}
+    for part in string.gmatch(data, "[^:]+") do f[#f + 1] = part end
+    if f[1] ~= "trade" then return nil end
+    if string.sub(f[2] or "", 1, 7) == "Player-" then return tonumber(f[3]) end
+    return tonumber(f[2])
+end
+
+-- Name und Stufentext dieser Zauber-ID, wie das Spiel sie kennt (alle Aufrufe geschuetzt). Rueckgabe: name, subtext oder nil
+function T.SpellText(id)
+    if type(id) ~= "number" then return nil end
+    local C = G.C_Spell
+    local name, sub
+    if C and C.GetSpellName then
+        local ok, v = pcall(C.GetSpellName, id)
+        if ok and type(v) == "string" and not Secret(v) then name = v end
+    end
+    if not name and G.GetSpellInfo then
+        local ok, v = pcall(G.GetSpellInfo, id)
+        if ok then
+            if type(v) == "table" then v = v.name end
+            if type(v) == "string" and not Secret(v) then name = v end
+        end
+    end
+    if C and C.GetSpellSubtext then
+        local ok, v = pcall(C.GetSpellSubtext, id)
+        if ok and type(v) == "string" and not Secret(v) and v ~= "" then sub = v end
+    elseif G.GetSpellSubtext then
+        local ok, v = pcall(G.GetSpellSubtext, id)
+        if ok and type(v) == "string" and not Secret(v) and v ~= "" then sub = v end
+    end
+    return name, sub
+end
+
 -- /fwguild linkdebug : jeden Beruf-Link im Chat mit Typ und Rohdaten melden (zeigt, was Shift+Klick und die Sprechblase senden)
 T.debug = false
 local dbgSeen = {}
@@ -111,6 +147,11 @@ function T.DebugLinks(author, links)
             local member = key and Guild.rowByKey and Guild.rowByKey[key] and true or false
             FW:Print("[Berufslink] " .. Guild.Display(author) .. ": Typ " .. tostring(e.kind) .. ", Name " .. tostring(e.label) ..
                 ", Beruf-ID " .. tostring(e.profId) .. ", Gildenmitglied " .. tostring(member) .. ", Daten " .. string.gsub(e.link, "\124", "!"))
+            local sid = T.SpellId(e.link)
+            if sid then
+                local nm, sub = T.SpellText(sid)
+                FW:Print("[Berufslink]   Zauber " .. sid .. ": Name " .. tostring(nm) .. ", Stufentext " .. tostring(sub))
+            end
         end
     end
 end

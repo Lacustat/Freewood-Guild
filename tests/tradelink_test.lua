@@ -112,6 +112,26 @@ T.Process("Anna", "|Hspell:2259:0|h[" .. ALCH .. "]|h")
 eq(#printed >= 1 and printed[1]:find("Typ spell", 1, true) ~= nil, true, "Fehlersuche meldet Typ")
 T.debug = false
 
+-- Zauber-ID und Stufentext aus dem Link
+eq(T.SpellId("trade:Player-6948-006B268F:4038:202"), 4038, "Zauber-ID (neue Form)")
+eq(T.SpellId("trade:4038:300:375"), 4038, "Zauber-ID (alte Form)")
+eq(T.SpellId("item:1"), nil, "kein Beruf-Link: keine Zauber-ID")
+eq(T.SpellText(4038), nil, "ohne C_Spell nichts")
+_G.C_Spell = { GetSpellName = function(id) return id == 4038 and "Ingenieurskunst" or nil end,
+               GetSpellSubtext = function(id) return id == 4038 and "Experte" or "" end }
+local nm, sub = T.SpellText(4038)
+eq(nm, "Ingenieurskunst", "Name des Zaubers"); eq(sub, "Experte", "Stufentext")
+local nm2, sub2 = T.SpellText(999)
+eq(nm2, nil, "unbekannte ID: kein Name"); eq(sub2, nil, "unbekannte ID: kein Stufentext")
+printed = {}
+T.debug = true
+now = 400
+T.Process("Anna", "|Htrade:Player-6948-006B268F:4038:202|h[Ingenieurskunst]|h")
+local joined = table.concat(printed, "\n")
+eq(joined:find("Zauber 4038: Name Ingenieurskunst, Stufentext Experte", 1, true) ~= nil, true, "Fehlersuche zeigt Name und Stufentext")
+T.debug = false
+_G.C_Spell = nil
+
 -- Liste
 local list = T.List()
 eq(#list, 1, "ein Mitglied in der Liste")

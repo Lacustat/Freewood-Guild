@@ -249,7 +249,8 @@ end
 -- Ob Forever sie liefert, prueft dieser Befehl: Abfrage senden, nach 4 s Anzahl und die ersten Eintraege mit Rohwerten ausgeben.
 
 local BOARD_WAIT = 4
-local BOARD_MAX = 40
+local BOARD_MAX = 160
+local EXPAND_WAIT = 2
 
 local function Join(...)
     local t = {}
@@ -281,6 +282,21 @@ function Q.ReadBoard()
     return n
 end
 
+-- Alle zugeklappten Ueberschriften aufklappen (von hinten nach vorn, damit die Nummern stimmen). Rueckgabe: Anzahl aufgeklappt
+function Q.ExpandAll()
+    if not (G.GetNumGuildTradeSkill and G.GetGuildTradeSkillInfo and G.ExpandGuildTradeSkillHeader) then return 0 end
+    local okN, n = pcall(G.GetNumGuildTradeSkill)
+    n = okN and tonumber(n) or 0
+    local opened = 0
+    for i = n, 1, -1 do
+        local ok, _, collapsed, _, header = pcall(G.GetGuildTradeSkillInfo, i)
+        if ok and collapsed == true then
+            if pcall(G.ExpandGuildTradeSkillHeader, i) then opened = opened + 1 end
+        end
+    end
+    return opened
+end
+
 function Q.RunBoard()
     Out("Gilden-Berufsliste: Funktionen QueryGuildRecipes " .. (G.QueryGuildRecipes and "+" or "-") ..
         ", GetNumGuildTradeSkill " .. (G.GetNumGuildTradeSkill and "+" or "-") ..
@@ -301,9 +317,14 @@ function Q.RunBoard()
     end
     local ok, err = pcall(G.QueryGuildRecipes)
     if not ok then Out("QueryGuildRecipes: Fehler " .. tostring(err)); return false end
-    local function Later() pcall(Q.ReadBoard) end
+    local function Read() pcall(Q.ReadBoard) end
+    local function Later()
+        local opened = Q.ExpandAll()
+        Out("Ueberschriften aufgeklappt: " .. opened .. (G.ExpandGuildTradeSkillHeader and "" or " (ExpandGuildTradeSkillHeader fehlt)"))
+        if G.C_Timer and G.C_Timer.After then G.C_Timer.After(EXPAND_WAIT, Read) else Read() end
+    end
     if G.C_Timer and G.C_Timer.After then G.C_Timer.After(BOARD_WAIT, Later) else Later() end
-    Out("Abfrage gesendet, Ergebnis in " .. BOARD_WAIT .. " s")
+    Out("Abfrage gesendet, Ergebnis in " .. (BOARD_WAIT + EXPAND_WAIT) .. " s")
     return true
 end
 

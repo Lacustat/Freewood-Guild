@@ -80,13 +80,17 @@ eq(table.concat(printed, "\n"):find("erst den eigenen Beruf") ~= nil, true, "Hin
 printed, timers = {}, {}
 _G.QueryGuildRecipes = function() end
 _G.GetNumGuildTradeSkill = function() return 2 end
-_G.GetGuildTradeSkillInfo = function(i) return 164, false, "icon", "Schmiedekunst", 3, 3, 3, "Anna", "MAGE", true end
+local expandedSet, expanded = {}, false
+_G.ExpandGuildTradeSkillHeader = function(i) expandedSet[i] = true; expanded = true end
+_G.GetGuildTradeSkillInfo = function(i) return 164, not expandedSet[i], "icon", "Schmiedekunst", 3, 3, 3, "Anna", "MAGE", true end
 _G.CanViewGuildRecipes = function(id) return id == 164 end
 eq(Q.RunBoard(), true, "Berufsliste gestartet")
 for _, fn in ipairs(timers) do fn() end
 local pj = table.concat(printed, "\n")
 eq(pj:find("2 Eintraege") ~= nil, true, "Anzahl Eintraege")
-eq(pj:find("1: 164, false, icon, Schmiedekunst") ~= nil, true, "Eintrag mit Rohwerten")
+eq(expanded, true, "Ueberschriften aufgeklappt")
+eq(pj:find("Ueberschriften aufgeklappt: 2") ~= nil, true, "Anzahl aufgeklappt gemeldet")
+eq(pj:find("1: 164, false, icon, Schmiedekunst") ~= nil, true, "Eintrag mit Rohwerten (nach dem Aufklappen)")
 eq(pj:find("CanViewGuildRecipes ja fuer: " .. Guild.ProfName(164), 1, true) ~= nil, true, "CanView")
 _G.QueryGuildRecipes = nil
 printed = {}

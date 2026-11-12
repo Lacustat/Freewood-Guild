@@ -156,3 +156,115 @@ function T.PrintList()
     FW:Print("Berufe aus dem Chat (" .. #list .. " Mitglieder):")
     for _, l in ipairs(list) do FW:Print(l) end
 end
+
+------------------------------------------------------------------------
+-- Geoeffnetes Berufefenster eines anderen Spielers auslesen (Probe, noch ohne Speichern)
+------------------------------------------------------------------------
+-- Manche Beruf-Links oeffnen sich (Weedo Cowking ja, andere nicht), und C_GuildInfo.QueryGuildMemberRecipes oeffnet
+-- das Fenster eines Gildenmitglieds. Zeigt das Fenster einen fremden Spieler (verlinkt oder Gildenmitglied), schreibt
+-- dieses Modul in den Chat, was das Spiel liefert (Name, Beruf, Rang, Rezepte gesamt/gelernt, Beispiele) und merkt die
+-- letzten Proben in FreewoodGuildDB.tradeProbe. Es wird noch nichts in der Gildenuebersicht gespeichert.
+
+local MAX_LOG = 20
+
+function T.Log()
+    local db = Guild.DB()
+    db.tradeProbe = db.tradeProbe or {}
+    return db.tradeProbe
+end
+
+-- Rueckgabe: Eintrag oder nil, wenn kein Fenster eines anderen Spielers offen ist
+function T.Read()
+    local ts = G.C_TradeSkillUI
+    if not ts then return nil end
+    local linked, linkedName = false, nil
+    if ts.IsTradeSkillLinked then
+        local ok, l, n = pcall(ts.IsTradeSkillLinked)
+        if ok and l then linked = true; linkedName = n end
+    end
+    local member = false
+    if ts.IsTradeSkillGuildMember then
+        local ok, m = pcall(ts.IsTradeSkillGuildMember)
+        member = ok and m == true
+    end
+    if not linked and not member then return nil end
+    local e = { at = Now(), linked = linked, member = member }
+    if type(linkedName) == "string" and not Secret(linkedName) then e.name = linkedName end
+    if ts.IsTradeSkillGuild then
+        local okG, isGuild = pcall(ts.IsTradeSkillGuild)
+        e.guildView = okG and isGuild == true
+    end
+    local profId, ids = Guild.Share.ReadRecipes()
+    e.profId = profId
+    e.prof = profId and Guild.ProfName(profId) or nil
+    e.learned = ids and #ids or 0
+    e.samples = {}
+    if ts.GetAllRecipeIDs then
+        local ok, all = pcall(ts.GetAllRecipeIDs)
+        if ok and type(all) == "table" then
+            e.total = #all
+            e.unmarked = 0
+            for i, rid in ipairs(all) do
+                local okI, info = pcall(ts.GetRecipeInfo, rid)
+                if okI and type(info) == "table" then
+                    if info.learned == nil then e.unmarked = e.unmarked + 1 end
+                    if #e.samples < 5 and info.learned and type(info.name) == "string" and not Secret(info.name) then
+                        e.samples[#e.samples + 1] = info.name
+                    end
+                end
+                if i >= 2000 then break end
+            end
+        end
+    end
+    if ts.GetBaseProfessionInfo then
+        local okB, bi = pcall(ts.GetBaseProfessionInfo)
+        if okB and type(bi) == "table" then
+            e.skill, e.maxSkill = tonumber(bi.skillLevel), tonumber(bi.maxSkillLevel)
+        end
+    end
+    local key = e.name and Guild.Key(e.name)
+    e.inGuild = key ~= nil and Guild.rowByKey ~= nil and Guild.rowByKey[key] ~= nil
+    return e
+end
+
+function T.Describe(e)
+    local parts = {
+        "Fremdes Berufefenster: " .. tostring(e.name or "?") .. " | " .. tostring(e.prof or "Beruf unbekannt"),
+        "Rezepte gesamt " .. tostring(e.total), "gelernt " .. tostring(e.learned),
+        "ohne Markierung " .. tostring(e.unmarked),
+        "verlinkt " .. tostring(e.linked) .. ", Gildenmitglied-Ansicht " .. tostring(e.member),
+        "Gilde " .. (e.inGuild and "ja" or "nein"),
+    }
+    if e.skill then parts[#parts + 1] = "Rang " .. tostring(e.skill) .. "/" .. tostring(e.maxSkill) end
+    if e.guildView then parts[#parts + 1] = "Gilden-Berufsansicht" end
+    local line = table.concat(parts, " | ")
+    if #e.samples > 0 then line = line .. " | z. B. " .. table.concat(e.samples, ", ") end
+    return line
+end
+
+local lastSig, lastAt = nil, 0
+function T.Capture()
+    if not Guild.Setting("tradeChat") then return nil end
+    local e = T.Read()
+    if not e then return nil end
+    local sig = tostring(e.name) .. "|" .. tostring(e.profId) .. "|" .. tostring(e.total) .. "|" .. tostring(e.learned)
+    local now = Clock()
+    if sig == lastSig and now - lastAt < 5 then return nil end
+    lastSig, lastAt = sig, now
+    local log = T.Log()
+    log[#log + 1] = e
+    while #log > MAX_LOG do table.remove(log, 1) end
+    FW:Print(T.Describe(e))
+    return e
+end
+
+local function Schedule()
+    if G.C_Timer and G.C_Timer.After then
+        G.C_Timer.After(0.8, function() pcall(T.Capture) end)
+    else
+        pcall(T.Capture)
+    end
+end
+
+FW:RegisterEvent("TRADE_SKILL_SHOW", Schedule, T)
+FW:RegisterEvent("TRADE_SKILL_LIST_UPDATE", Schedule, T)

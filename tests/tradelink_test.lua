@@ -97,5 +97,39 @@ eq(list[1]:find("Anna") ~= nil, true, "Name in der Liste")
 Guild.DB().members["anna"].skills = { [171] = { rank = 100, max = 150 } }
 Guild.DB().members["anna"].stamp = 9
 eq(#T.List(), 0, "mit echten Daten nicht mehr in der Liste")
+
+-- Fremdes Berufefenster auslesen
+Guild.Share = { ReadRecipes = function() return 185, { 1, 2, 3 } end }
+eq(T.Read(), nil, "ohne C_TradeSkillUI nichts")
+local events = {}
+FW.RegisterEvent = function(_, ev, fn) events[ev] = fn end
+_G.C_TradeSkillUI = {
+    IsTradeSkillLinked = function() return true, "Weedo Cowking" end,
+    IsTradeSkillGuildMember = function() return false end,
+    IsTradeSkillGuild = function() return false end,
+    GetAllRecipeIDs = function() return { 10, 11, 12, 13 } end,
+    GetRecipeInfo = function(id) return { name = "R" .. id, learned = (id ~= 13) } end,
+    GetBaseProfessionInfo = function() return { skillLevel = 250, maxSkillLevel = 300 } end,
+}
+Guild.rowByKey["weedo cowking"] = { name = "Weedo Cowking" }
+local e = T.Read()
+eq(e.name, "Weedo Cowking", "Name aus dem Fenster")
+eq(e.total, 4, "gesamt"); eq(e.learned, 3, "gelernt"); eq(e.unmarked, 0, "alle markiert")
+eq(e.skill, 250, "Rang"); eq(e.inGuild, true, "Gildenmitglied")
+eq(type(T.Describe(e)), "string", "Beschreibung")
+eq(T.Describe(e):find("Weedo Cowking") ~= nil, true, "Name in der Zeile")
+printed = {}
+now = 500
+eq(T.Capture() ~= nil, true, "Probe geschrieben")
+eq(#T.Log(), 1, "ein Eintrag"); eq(#printed, 1, "eine Zeile im Chat")
+eq(T.Capture(), nil, "Wiederholung innerhalb 5 s ignoriert")
+-- Gildenmitglied-Ansicht ohne Link
+_G.C_TradeSkillUI.IsTradeSkillLinked = function() return false end
+_G.C_TradeSkillUI.IsTradeSkillGuildMember = function() return true end
+now = 600
+eq(T.Capture() ~= nil, true, "Mitglieder-Ansicht erkannt")
+-- eigenes Fenster
+_G.C_TradeSkillUI.IsTradeSkillGuildMember = function() return false end
+eq(T.Read(), nil, "eigenes Fenster: nichts")
 print(fails == 0 and "OK" or (fails .. " Fehler"))
 os.exit(fails == 0 and 0 or 1)

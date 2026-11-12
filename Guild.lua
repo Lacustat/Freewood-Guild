@@ -595,6 +595,11 @@ SLASH_FREEWOODGUILD1 = "/fwguild"
 SLASH_FREEWOODGUILD2 = "/fwgilde"
 SlashCmdList["FREEWOODGUILD"] = function(msg)
     msg = string.lower((string.gsub(msg or "", "^%s+", "")))
+    local cmd, rest = string.match(msg, "^(%S+)%s+(.+)$")
+    if cmd == "mitgliedrezepte" then
+        if Guild.RecipeQuery then Guild.RecipeQuery.MemberRecipes(rest) end
+        return
+    end
     if msg == "sendtest" then
         FW:Print("Sende-Test (14 Nachrichten hintereinander):")
         for _, l in ipairs(Guild.Share.SendTest()) do FW:Print(l) end
@@ -613,6 +618,10 @@ SlashCmdList["FREEWOODGUILD"] = function(msg)
     elseif msg == "share" then
         if Guild.Share then Guild.Share.SendAll(true) end
         FW:Print(L.GUILD_SHARE_SENT)
+    elseif msg == "gildenberufe" then
+        if Guild.RecipeQuery then Guild.RecipeQuery.RunBoard() end
+    elseif msg == "mitgliedrezepte" then
+        if Guild.RecipeQuery then Guild.RecipeQuery.MemberRecipes("") end
     elseif msg == "gildenrezepte" then
         if Guild.RecipeQuery then Guild.RecipeQuery.Run() end
     elseif msg == "trade" then

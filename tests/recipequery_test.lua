@@ -75,5 +75,35 @@ open = false
 printed = {}
 eq(Q.Run(), false, "ohne Berufefenster")
 eq(table.concat(printed, "\n"):find("erst den eigenen Beruf") ~= nil, true, "Hinweis Fenster oeffnen")
+
+-- Alte Gilden-Berufsliste
+printed, timers = {}, {}
+_G.QueryGuildRecipes = function() end
+_G.GetNumGuildTradeSkill = function() return 2 end
+_G.GetGuildTradeSkillInfo = function(i) return 164, false, "icon", "Schmiedekunst", 3, 3, 3, "Anna", "MAGE", true end
+_G.CanViewGuildRecipes = function(id) return id == 164 end
+eq(Q.RunBoard(), true, "Berufsliste gestartet")
+for _, fn in ipairs(timers) do fn() end
+local pj = table.concat(printed, "\n")
+eq(pj:find("2 Eintraege") ~= nil, true, "Anzahl Eintraege")
+eq(pj:find("1: 164, false, icon, Schmiedekunst") ~= nil, true, "Eintrag mit Rohwerten")
+eq(pj:find("CanViewGuildRecipes ja fuer: " .. Guild.ProfName(164), 1, true) ~= nil, true, "CanView")
+_G.QueryGuildRecipes = nil
+printed = {}
+eq(Q.RunBoard(), false, "ohne Funktion")
+
+-- Rezepte eines Mitglieds
+Guild.rowByKey = { ["weedo cowking"] = { name = "Weedo Cowking", key = "weedo cowking", guid = "Player-1-ABC", online = true } }
+Guild.Row = function(n) return Guild.rowByKey[Guild.Key(n) or ""] end
+local called
+_G.C_GuildInfo.QueryGuildMemberRecipes = function(guid, skill) called = { guid, skill } end
+printed = {}
+eq(Q.MemberRecipes("weedo cowking kochen"), true, "Mitglied abgefragt")
+eq(called and called[1], "Player-1-ABC", "GUID uebergeben")
+eq(called and called[2], Guild.ProfByName("Kochen"), "Beruf-ID uebergeben")
+eq(Q.MemberRecipes("Weedo Cowking 185"), true, "mit Zahl")
+eq(Q.MemberRecipes("Niemand kochen"), false, "unbekanntes Mitglied")
+eq(Q.MemberRecipes("Weedo Cowking quatsch"), false, "unbekannter Beruf")
+eq(Q.MemberRecipes(""), false, "ohne Angaben")
 print(fails == 0 and "OK" or (fails .. " Fehler"))
 os.exit(fails == 0 and 0 or 1)

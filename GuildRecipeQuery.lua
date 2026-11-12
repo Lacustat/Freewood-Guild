@@ -241,3 +241,100 @@ function Q.PrintLog()
     if #log == 0 then FW:Print("Gilden-Rezeptabfrage: noch keine Ergebnisse. /fwguild gildenrezepte") return end
     for i = math.max(1, #log - 11), #log do FW:Print(log[i]) end
 end
+
+------------------------------------------------------------------------
+-- Alte Gilden-Berufsliste: QueryGuildRecipes / GetNumGuildTradeSkill / GetGuildTradeSkillInfo  (/fwguild gildenberufe)
+------------------------------------------------------------------------
+-- In Cataclysm zeigte sie alle Mitglieder mit Beruf und Stufe, ohne dass die anderen ein Addon brauchen.
+-- Ob Forever sie liefert, prueft dieser Befehl: Abfrage senden, nach 4 s Anzahl und die ersten Eintraege mit Rohwerten ausgeben.
+
+local BOARD_WAIT = 4
+local BOARD_MAX = 40
+
+local function Join(...)
+    local t = {}
+    for i = 1, select("#", ...) do t[#t + 1] = tostring((select(i, ...))) end
+    return table.concat(t, ", ")
+end
+
+function Q.ReadBoard()
+    local n = 0
+    if G.GetNumGuildTradeSkill then
+        local ok, v = pcall(G.GetNumGuildTradeSkill)
+        if ok then n = tonumber(v) or 0 end
+    end
+    Out("Gilden-Berufsliste: " .. n .. " Eintraege")
+    if G.GetGuildTradeSkillInfo then
+        for i = 1, math.min(n, BOARD_MAX) do
+            local res = { pcall(G.GetGuildTradeSkillInfo, i) }
+            if res[1] then
+                table.remove(res, 1)
+                for k = 1, #res do
+                    if type(res[k]) == "string" and Secret(res[k]) then res[k] = "<geheim>" end
+                end
+                Out(i .. ": " .. Join((table.unpack or unpack)(res)))
+            else
+                Out(i .. ": Fehler " .. tostring(res[2]))
+            end
+        end
+    end
+    return n
+end
+
+function Q.RunBoard()
+    Out("Gilden-Berufsliste: Funktionen QueryGuildRecipes " .. (G.QueryGuildRecipes and "+" or "-") ..
+        ", GetNumGuildTradeSkill " .. (G.GetNumGuildTradeSkill and "+" or "-") ..
+        ", GetGuildTradeSkillInfo " .. (G.GetGuildTradeSkillInfo and "+" or "-") ..
+        ", CanViewGuildRecipes " .. (G.CanViewGuildRecipes and "+" or "-"))
+    if G.CanViewGuildRecipes then
+        local can = {}
+        for id in pairs(Guild.PROF) do
+            local ok, v = pcall(G.CanViewGuildRecipes, id)
+            if ok and v then can[#can + 1] = Guild.ProfName(id) end
+        end
+        table.sort(can)
+        Out("CanViewGuildRecipes ja fuer: " .. (#can > 0 and table.concat(can, ", ") or "keinen Beruf"))
+    end
+    if not (G.QueryGuildRecipes and G.GetNumGuildTradeSkill) then
+        Out("Die alte Gilden-Berufsliste ist hier nicht vorhanden.")
+        return false
+    end
+    local ok, err = pcall(G.QueryGuildRecipes)
+    if not ok then Out("QueryGuildRecipes: Fehler " .. tostring(err)); return false end
+    local function Later() pcall(Q.ReadBoard) end
+    if G.C_Timer and G.C_Timer.After then G.C_Timer.After(BOARD_WAIT, Later) else Later() end
+    Out("Abfrage gesendet, Ergebnis in " .. BOARD_WAIT .. " s")
+    return true
+end
+
+-- Ereignis der alten Liste (Name aus Cataclysm); nur mitschreiben
+pcall(FW.RegisterEvent, FW, "GUILD_TRADESKILL_UPDATE", function(...)
+    Out("Ereignis GUILD_TRADESKILL_UPDATE (Werte: " .. Join(...) .. ")")
+end, Q)
+
+------------------------------------------------------------------------
+-- Rezepte eines Gildenmitglieds abfragen: C_GuildInfo.QueryGuildMemberRecipes(GUID, Beruf-ID)  (/fwguild mitgliedrezepte)
+------------------------------------------------------------------------
+-- Oeffnet laut Wiki das Berufefenster des Mitglieds (TRADE_SKILL_SHOW). Das Auslesen macht Guild.TradeLink.
+
+-- arg: "Weedo Cowking Kochen" oder "Weedo Cowking 185": letztes Wort = Beruf (Name oder ID), davor der Name
+function Q.MemberRecipes(arg)
+    arg = tostring(arg or "")
+    local name, prof = string.match(arg, "^(.-)%s+(%S+)$")
+    if not name or name == "" then
+        Out("Benutzung: /fwguild mitgliedrezepte <Name> <Beruf oder ID>, zum Beispiel: /fwguild mitgliedrezepte Weedo Cowking Kochen")
+        return false
+    end
+    local skill = tonumber(prof) or Guild.ProfByName(prof)
+    if not skill then Out("Beruf unbekannt: " .. prof); return false end
+    local row = Guild.Row(name)
+    if not row then Out("Gildenmitglied nicht gefunden: " .. name); return false end
+    if not row.guid then Out(row.name .. ": keine Spieler-ID in der Gildenliste"); return false end
+    local gi = G.C_GuildInfo
+    if not (gi and gi.QueryGuildMemberRecipes) then Out("C_GuildInfo.QueryGuildMemberRecipes fehlt."); return false end
+    Out(string.format("Abfrage %s (%s), Beruf %s (%d), online %s", row.name, tostring(row.guid), Guild.ProfName(skill), skill, tostring(row.online)))
+    local ok, err = pcall(gi.QueryGuildMemberRecipes, row.guid, skill)
+    if not ok then Out("Fehler: " .. tostring(err)); return false end
+    Out("Abfrage gesendet. Oeffnet sich ein Berufefenster, steht gleich eine Zeile mit den Rezepten im Chat.")
+    return true
+end

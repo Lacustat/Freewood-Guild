@@ -613,6 +613,8 @@ SlashCmdList["FREEWOODGUILD"] = function(msg)
     elseif msg == "share" then
         if Guild.Share then Guild.Share.SendAll(true) end
         FW:Print(L.GUILD_SHARE_SENT)
+    elseif msg == "gildenrezepte" then
+        if Guild.RecipeQuery then Guild.RecipeQuery.Run() end
     elseif msg == "trade" then
         if Guild.TradeLink then Guild.TradeLink.PrintLog() end
     elseif msg == "refresh" then

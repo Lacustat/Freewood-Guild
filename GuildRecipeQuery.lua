@@ -400,11 +400,6 @@ function Q.RunBoard()
     return true
 end
 
--- Ereignis der alten Liste (Name aus Cataclysm); nur mitschreiben
-pcall(FW.RegisterEvent, FW, "GUILD_TRADESKILL_UPDATE", function(...)
-    Out("Ereignis GUILD_TRADESKILL_UPDATE (Werte: " .. Join(...) .. ")")
-end, Q)
-
 ------------------------------------------------------------------------
 -- Rezepte eines Gildenmitglieds abfragen: C_GuildInfo.QueryGuildMemberRecipes(GUID, Beruf-ID)  (/fwguild mitgliedrezepte)
 ------------------------------------------------------------------------

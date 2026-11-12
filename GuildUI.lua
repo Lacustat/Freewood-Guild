@@ -190,7 +190,7 @@ function Guild.ShowRecipes(name, profId)
     local w = recipeWin
     local ids = sh and sh.recipes and sh.recipes[profId]
     local skill = sh and sh.skills and sh.skills[profId]
-    w.title:SetText(Guild.Display(name) .. " - " .. Guild.ProfName(profId) .. (skill and (" " .. skill.rank .. "/" .. skill.max) or ""))
+    w.title:SetText(Guild.Display(name) .. " - " .. Guild.ProfName(profId) .. (skill and not skill.chat and (" " .. skill.rank .. "/" .. skill.max) or ""))
     w.info:SetText(ids and string.format(L.GUILD_RECIPES_INFO, #ids, Guild.FormatAgo(sh.recipeStamp)) or "")
     function w.Fill()
         if not ids or #ids == 0 then
@@ -235,7 +235,7 @@ local function MakeView(row)
     v.race = row.race or (sh and sh.race and Guild.RaceName(sh.race)) or ""
     v.skills = sh and sh.skills or nil
     v.p1, v.p2 = Guild.MainProfs(v.skills)
-    local function Rank(id) return v.skills and v.skills[id] and v.skills[id].rank or nil end
+    local function Rank(id) return v.skills and v.skills[id] and not v.skills[id].chat and v.skills[id].rank or nil end
     v.cook, v.aid, v.fish = Rank(Guild.COOK), Rank(Guild.AID), Rank(Guild.FISH)
     v.played = sh and sh.played or nil
     if sh and sh.level and sh.level == row.level then
@@ -529,7 +529,7 @@ local function BuildMembers(content)
                 local pid = v[id]
                 if pid then
                     local s = v.skills and v.skills[pid]
-                    cell:SetText(Guild.ProfName(pid) .. (s and (" " .. s.rank) or ""))
+                    cell:SetText(Guild.ProfName(pid) .. (s and (s.chat and " ?" or (" " .. s.rank)) or ""))
                     local has = v.sh and v.sh.recipes and v.sh.recipes[pid]
                     cell:SetTextColor(UI.Color(has and "goldLight" or "textDim"))
                 else
@@ -756,7 +756,7 @@ if UI.RegisterSettingsSection then
             Box(L.GUILD_SET_GOLD, "shareGold")
             Box(L.GUILD_SET_BOARD, "boardNotify")
             Box(L.GUILD_SET_ACH, "achNotify")
-            Box(L.GUILD_SET_TRADELINK, "tradeProbe")
+            Box(L.GUILD_SET_TRADELINK, "tradeChat")
             Box(L.GUILD_SET_MAPSHOW, "mapShow")
             Box(L.GUILD_SET_MAPSHARE, "mapShare")
             local sizeLabel = UI.CreateLabel(f, "", { size = 12 })

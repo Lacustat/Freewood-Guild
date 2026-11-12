@@ -60,6 +60,45 @@ function Q.Availability()
     return out, all
 end
 
+-- Alle Funktionen, die nach Gilde und Beruf/Rezept klingen (Suche nach einem Weg in die Gilden-Berufsansicht)
+function Q.Scan()
+    local found = {}
+    local function Look(tbl, prefix)
+        if type(tbl) ~= "table" then return end
+        local ok = pcall(function()
+            for k, v in pairs(tbl) do
+                if type(k) == "string" and type(v) == "function" then
+                    local l = string.lower(k)
+                    if string.find(l, "guild", 1, true) and (string.find(l, "recipe", 1, true) or string.find(l, "trade", 1, true)
+                        or string.find(l, "skill", 1, true) or string.find(l, "profession", 1, true) or string.find(l, "craft", 1, true)) then
+                        found[#found + 1] = prefix .. k
+                    end
+                end
+            end
+        end)
+        return ok
+    end
+    Look(G, "")
+    Look(G.C_GuildInfo, "C_GuildInfo.")
+    Look(G.C_TradeSkillUI, "C_TradeSkillUI.")
+    -- zusaetzlich jede Funktion von C_TradeSkillUI mit "Guild" im Namen
+    local ts = G.C_TradeSkillUI
+    if type(ts) == "table" then
+        pcall(function()
+            for k, v in pairs(ts) do
+                if type(k) == "string" and type(v) == "function" and string.find(string.lower(k), "guild", 1, true) then
+                    local name = "C_TradeSkillUI." .. k
+                    local dup = false
+                    for _, f in ipairs(found) do if f == name then dup = true end end
+                    if not dup then found[#found + 1] = name end
+                end
+            end
+        end)
+    end
+    table.sort(found)
+    return found
+end
+
 -- Rezepte fuer die Abfrage aus dem offenen eigenen Berufefenster: { skillLineID, { {id, learned}, ... } }
 function Q.Pick()
     local ts = G.C_TradeSkillUI
@@ -89,7 +128,7 @@ function Q.Pick()
     local picks = {}
     for _, p in ipairs(learned) do picks[#picks + 1] = p end
     for _, p in ipairs(other) do picks[#picks + 1] = p end
-    return bi.professionID, picks, bi.professionName
+    return bi.parentProfessionID or bi.professionID, picks, bi.professionName
 end
 
 local Next
@@ -111,12 +150,15 @@ local function Report(skill, recipe, n, label)
         tostring(n), online, #names > 0 and (" | " .. table.concat(names, ", ")) or ""))
 end
 
-function Q.OnEvent()
-    if not waiting then return end
+function Q.OnEvent(...)
     local f = G.GetGuildRecipeInfoPostQuery
-    if not f then return end
-    local ok, skill, recipe, n = pcall(f)
-    if not ok then return end
+    local ok, skill, recipe, n
+    if f then ok, skill, recipe, n = pcall(f) end
+    local raw = {}
+    for i = 1, select("#", ...) do raw[#raw + 1] = tostring((select(i, ...))) end
+    Out("Ereignis GUILD_RECIPE_KNOWN_BY_MEMBERS (Werte: " .. table.concat(raw, ",") .. ") | Ergebnis: " ..
+        tostring(skill) .. ", " .. tostring(recipe) .. ", " .. tostring(n))
+    if not waiting or not ok then return end
     local w = waiting
     if w.recipe ~= recipe then return end
     waiting = nil
@@ -129,7 +171,7 @@ Next = function()
     local job = table.remove(queue, 1)
     if not job then return end
     local gi = G.C_GuildInfo
-    local ok, updated = pcall(gi.QueryGuildMembersForRecipe, job.skill, job.recipe, 0)
+    local ok, updated = pcall(gi.QueryGuildMembersForRecipe, job.skill, job.recipe, job.level)
     if not ok then
         Out("Abfrage " .. tostring(job.label) .. ": Fehler " .. tostring(updated))
         return Next()
@@ -145,7 +187,11 @@ Next = function()
     if G.C_Timer and G.C_Timer.After then
         G.C_Timer.After(TIMEOUT, function()
             if waiting and token == my then
-                Out("Abfrage " .. tostring(job.label) .. ": keine Antwort in " .. TIMEOUT .. " s")
+                local f = G.GetGuildRecipeInfoPostQuery
+                local ok, a, b, c = false
+                if f then ok, a, b, c = pcall(f) end
+                Out("Abfrage " .. tostring(job.label) .. " (Stufe " .. tostring(job.level) .. "): keine Antwort in " .. TIMEOUT ..
+                    " s | Ergebnisfunktion: " .. tostring(a) .. ", " .. tostring(b) .. ", " .. tostring(c))
                 waiting = nil
                 Next()
             end
@@ -158,6 +204,13 @@ function Q.Run()
     local lines, all = Q.Availability()
     Out("Gilden-Rezeptabfrage, Funktionen (+ vorhanden, - fehlt):")
     for _, l in ipairs(lines) do Out(l) end
+    local scan = Q.Scan()
+    Out("Gilde/Beruf-Funktionen im Spiel (" .. #scan .. "): " .. (#scan > 0 and table.concat(scan, ", ") or "keine"))
+    local ts = G.C_TradeSkillUI
+    if ts and ts.IsTradeSkillGuild then
+        local okG, isG = pcall(ts.IsTradeSkillGuild)
+        Out("Gilden-Berufsansicht gerade offen: " .. tostring(okG and isG))
+    end
     if not all then
         Out("Nicht alle Funktionen vorhanden: die Abfrage ist hier nicht moeglich.")
         return false
@@ -170,14 +223,18 @@ function Q.Run()
     end
     Out("Beruf " .. tostring(profName or skill) .. " (" .. tostring(skill) .. "): " .. #picks .. " Abfragen")
     queue, waiting = {}, nil
-    for _, p in ipairs(picks) do
+    for i, p in ipairs(picks) do
         queue[#queue + 1] = { skill = skill, recipe = p[1], learned = p[2], label = p[3] or p[1] }
+        if i == 1 then
+            -- erstes Rezept zusaetzlich mit Stufe 0 (Blizzard gibt die Stufe der Rezeptansicht mit)
+            queue[#queue + 1] = { skill = skill, recipe = p[1], learned = p[2], label = p[3] or p[1], level = 0 }
+        end
     end
     Next()
     return true
 end
 
-FW:RegisterEvent("GUILD_RECIPE_KNOWN_BY_MEMBERS", function() pcall(Q.OnEvent) end, Q)
+FW:RegisterEvent("GUILD_RECIPE_KNOWN_BY_MEMBERS", function(...) pcall(Q.OnEvent, ...) end, Q)
 
 function Q.PrintLog()
     local log = Q.Log()

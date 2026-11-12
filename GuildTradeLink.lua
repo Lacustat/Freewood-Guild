@@ -1,12 +1,12 @@
--- Freewood-Guild: Berufe-Links aus dem Chat (Probe).
+-- Freewood-Guild: Berufe aus Chat-Links merken.
 --
--- Mitglieder ohne dieses Addon koennen ihren Beruf im Spiel in den Chat posten. Oeffnet man den Link, zeigt das
--- Berufefenster dessen Rezepte (Ansichtsmodus). Dieses Modul
---   1. erkennt Beruf-Links im Chat (jeder Kanal) und meldet sie, wenn der Absender in der Gildenliste steht
---      (Haken fuer andere Module: Guild.TradeLink.AddHook, z. B. das Hinweisfenster in Freewood-Dev),
---   2. liest beim Oeffnen eines verlinkten Berufs aus, was das Spiel liefert (Name, Beruf, Rang, Zahl der Rezepte,
---      ob sie als "gelernt" markiert sind) und schreibt es als Probe in den Chat und nach FreewoodGuildDB.tradeProbe.
--- In der Gildenuebersicht wird in dieser Stufe noch nichts gespeichert. UNGEPRUEFT im Spiel.
+-- Mitglieder ohne dieses Addon koennen ihren Beruf im Spiel in den Chat posten. Das Spiel erlaubt es nicht, fremde
+-- Beruf-Links zu oeffnen (geprueft auf OctoWoW/Forever: Klick oeffnet nichts), die Rezepte sind also nicht zu lesen.
+-- Der Link selbst enthaelt aber die Beruf-ID:  trade:<Spieler-GUID>:<Zauber-ID>:<Beruf-ID>   (z. B. ...:3909:197 = Schneiderei).
+-- Dieses Modul liest in jedem Chat-Kanal mit, und wenn der Absender in der Gildenliste steht und dieses Addon nicht hat
+-- (keine eigenen Berufsdaten), merkt es sich den Beruf. Die Gildenuebersicht zeigt ihn dann mit "?" statt der Stufe.
+-- Meldet das Mitglied spaeter selbst seine Berufe (Addon), ersetzen die echten Daten den Eintrag.
+-- UNGEPRUEFT im Spiel.
 
 local ADDON, NS = ...
 
@@ -22,12 +22,13 @@ Guild.TradeLink = T
 
 local hooks = {}
 local DEDUPE = 3         -- Sekunden: derselbe Link vom selben Absender zaehlt einmal (jedes Chatfenster ruft den Filter)
-local MAX_LOG = 20
 local seen = {}
 
 local function Secret(v) return Guild.Secret(v) end
 local function Clock() return G.GetTime and G.GetTime() or 0 end
+local function Now() return G.time and G.time() or 0 end
 
+-- Andere Module koennen sich melden lassen: fn(info) mit { name, key, link, text, label, profId }
 function T.AddHook(fn)
     if type(fn) == "function" then hooks[#hooks + 1] = fn end
 end
@@ -36,36 +37,51 @@ end
 -- Links im Text finden
 ------------------------------------------------------------------------
 
--- Rueckgabe: Liste { link = "trade:...", text = "|H...|h[Name]|h", label = "Name" }
+-- Beruf-ID aus den Linkdaten: "trade:Player-1-ABC:2018:164" -> 164; alte Form "trade:2018:300:375:guid:bits" -> nil
+function T.SkillLine(data)
+    if type(data) ~= "string" then return nil end
+    local f = {}
+    for part in string.gmatch(data, "[^:]+") do f[#f + 1] = part end
+    if f[1] ~= "trade" then return nil end
+    if string.sub(f[2] or "", 1, 7) == "Player-" then
+        local id = tonumber(f[4])
+        if id and Guild.PROF[id] then return id end
+    end
+    return nil
+end
+
+-- Rueckgabe: Liste { link = "trade:...", text = "|H...|h[Name]|h", label = "Name", profId = ... }
 function T.Parse(msg)
     local out = {}
     if type(msg) ~= "string" or Secret(msg) then return out end
     for link, label in string.gmatch(msg, "|H(trade:[^|]*)|h(.-)|h") do
         local name = string.gsub(string.gsub(label, "^%[", ""), "%]$", "")
-        out[#out + 1] = { link = link, text = "|H" .. link .. "|h" .. label .. "|h", label = name }
+        local profId = T.SkillLine(link) or Guild.ProfByName(name)
+        out[#out + 1] = { link = link, text = "|H" .. link .. "|h" .. label .. "|h", label = name, profId = profId }
     end
     return out
 end
 
--- Beruf (ID aus Guild.PROF) zu einem Link; nil, wenn der Name keinem bekannten Beruf entspricht
-local function ProfOf(entry)
-    local id = Guild.ProfByName(entry.label)
-    if id then return id end
-    for word in string.gmatch(entry.label, "[^%s%-:%(%)]+") do
-        id = Guild.ProfByName(word)
-        if id then return id end
-    end
-    return nil
-end
+------------------------------------------------------------------------
+-- Merken
+------------------------------------------------------------------------
 
--- Schon Rezepte dieses Mitglieds und Berufs bekannt (vom Mitglied selbst gemeldet)?
-function T.IsKnown(key, profId)
-    local rec = Guild.DB().members[key]
-    if not rec then return false end
-    if profId then
-        return rec.recipes ~= nil and rec.recipes[profId] ~= nil
+-- Beruf eines Mitglieds ohne Addon eintragen. Rueckgabe: true, wenn neu eingetragen
+function T.Record(key, profId)
+    if not key or not profId or not Guild.PROF[profId] then return false end
+    local db = Guild.DB()
+    local rec = db.members[key]
+    if rec and rec.stamp then return false end          -- hat das Addon: eigene Daten gelten
+    if rec and rec.skills and rec.skills[profId] then
+        rec.skills[profId].at = Now()
+        return false
     end
-    return false
+    rec = rec or {}
+    db.members[key] = rec
+    rec.skills = rec.skills or {}
+    rec.skills[profId] = { rank = 0, max = 0, chat = true, at = Now() }
+    if Guild.Changed then Guild.Changed() end
+    return true
 end
 
 -- Eine Chatzeile pruefen. Rueckgabe: Anzahl gemeldeter Links
@@ -82,11 +98,8 @@ function T.Process(author, msg)
         local sig = key .. "|" .. e.link
         if not seen[sig] or now - seen[sig] > DEDUPE then
             seen[sig] = now
-            local profId = ProfOf(e)
-            local info = {
-                name = Guild.Display(author), key = key, link = e.link, text = e.text,
-                label = e.label, profId = profId, known = T.IsKnown(key, profId),
-            }
+            pcall(T.Record, key, e.profId)
+            local info = { name = Guild.Display(author), key = key, link = e.link, text = e.text, label = e.label, profId = e.profId }
             for _, h in ipairs(hooks) do pcall(h, info) end
             n = n + 1
         end
@@ -101,7 +114,7 @@ local CHAT_EVENTS = {
 }
 
 local function ChatFilter(_, _, msg, author)
-    if not Guild.Setting("tradeProbe") then return false end
+    if not Guild.Setting("tradeChat") then return false end
     pcall(T.Process, author, msg)
     return false   -- Text bleibt unveraendert
 end
@@ -114,108 +127,32 @@ end
 InstallFilter()
 T.ChatFilter = ChatFilter
 
-------------------------------------------------------------------------
--- Verlinktes Berufefenster auslesen (Probe)
-------------------------------------------------------------------------
-
-function T.Log()
-    local db = Guild.DB()
-    db.tradeProbe = db.tradeProbe or {}
-    return db.tradeProbe
-end
-
--- Liest das offene Berufefenster. Rueckgabe: Eintrag oder nil, wenn kein verlinkter Beruf offen ist
-function T.Read()
-    local ts = G.C_TradeSkillUI
-    if not ts or not ts.IsTradeSkillLinked then return nil end
-    local okL, linked, linkedName = pcall(ts.IsTradeSkillLinked)
-    if not okL or not linked then return nil end
-    local e = { at = G.time and G.time() or 0, linked = true }
-    if type(linkedName) == "string" and not Secret(linkedName) then e.name = linkedName end
-    if ts.IsTradeSkillGuild then
-        local okG, isGuild = pcall(ts.IsTradeSkillGuild)
-        e.guildView = okG and isGuild == true
-    end
-    local profId, ids = Guild.Share.ReadRecipes()
-    e.profId = profId
-    e.prof = profId and Guild.ProfName(profId) or nil
-    e.learned = ids and #ids or 0
-    e.samples = {}
-    if ts.GetAllRecipeIDs then
-        local ok, all = pcall(ts.GetAllRecipeIDs)
-        if ok and type(all) == "table" then
-            e.total = #all
-            e.unmarked = 0
-            for i, rid in ipairs(all) do
-                local okI, info = pcall(ts.GetRecipeInfo, rid)
-                if okI and type(info) == "table" then
-                    if info.learned == nil then e.unmarked = e.unmarked + 1 end
-                    if #e.samples < 5 and info.learned and type(info.name) == "string" and not Secret(info.name) then
-                        e.samples[#e.samples + 1] = info.name
-                    end
-                end
-                if i >= 2000 then break end
+-- /fwguild trade : Mitglieder, deren Beruf nur aus einem Chat-Link stammt
+function T.List()
+    local out = {}
+    for key, rec in pairs(Guild.DB().members) do
+        if type(rec) == "table" and not rec.stamp and type(rec.skills) == "table" then
+            local profs = {}
+            for id, s in pairs(rec.skills) do
+                if type(s) == "table" and s.chat then profs[#profs + 1] = Guild.ProfName(id) end
+            end
+            if #profs > 0 then
+                table.sort(profs)
+                local row = Guild.rowByKey and Guild.rowByKey[key]
+                out[#out + 1] = Guild.Display(row and row.name or key) .. ": " .. table.concat(profs, ", ")
             end
         end
     end
-    if ts.GetBaseProfessionInfo then
-        local okB, bi = pcall(ts.GetBaseProfessionInfo)
-        if okB and type(bi) == "table" then
-            e.skill, e.maxSkill = tonumber(bi.skillLevel), tonumber(bi.maxSkillLevel)
-        end
-    end
-    local key = e.name and Guild.Key(e.name)
-    e.member = key ~= nil and Guild.rowByKey ~= nil and Guild.rowByKey[key] ~= nil
-    return e
+    table.sort(out)
+    return out
 end
 
-function T.Describe(e)
-    local parts = {
-        "Berufe-Link: " .. tostring(e.name or "?") .. " | " .. tostring(e.prof or "Beruf unbekannt"),
-        "Rezepte gesamt " .. tostring(e.total), "gelernt " .. tostring(e.learned),
-        "ohne Markierung " .. tostring(e.unmarked),
-        "Gilde " .. (e.member and "ja" or "nein"),
-    }
-    if e.skill then parts[#parts + 1] = "Rang " .. tostring(e.skill) .. "/" .. tostring(e.maxSkill) end
-    if e.guildView then parts[#parts + 1] = "Gildenansicht" end
-    local line = table.concat(parts, " | ")
-    if #e.samples > 0 then line = line .. " | z. B. " .. table.concat(e.samples, ", ") end
-    return line
-end
-
-local lastSig, lastAt = nil, 0
-function T.Capture()
-    if not Guild.Setting("tradeProbe") then return nil end
-    local e = T.Read()
-    if not e then return nil end
-    local sig = tostring(e.name) .. "|" .. tostring(e.profId) .. "|" .. tostring(e.total) .. "|" .. tostring(e.learned)
-    local now = Clock()
-    if sig == lastSig and now - lastAt < 5 then return nil end
-    lastSig, lastAt = sig, now
-    local log = T.Log()
-    log[#log + 1] = e
-    while #log > MAX_LOG do table.remove(log, 1) end
-    FW:Print(T.Describe(e))
-    return e
-end
-
-local function Schedule()
-    if G.C_Timer and G.C_Timer.After then
-        G.C_Timer.After(0.8, function() pcall(T.Capture) end)
-    else
-        pcall(T.Capture)
-    end
-end
-
-FW:RegisterEvent("TRADE_SKILL_SHOW", Schedule, T)
-FW:RegisterEvent("TRADE_SKILL_LIST_UPDATE", Schedule, T)
-
--- /fwguild trade : letzte Proben im Chat
-function T.PrintLog()
-    local log = T.Log()
-    if #log == 0 then
-        FW:Print("Berufe-Link: noch keine Probe. Einen geposteten Beruf eines Gildenmitglieds anklicken.")
+function T.PrintList()
+    local list = T.List()
+    if #list == 0 then
+        FW:Print("Berufe aus dem Chat: noch keine. Sobald ein Gildenmitglied ohne das Addon einen Beruf postet, wird er gemerkt.")
         return
     end
-    for i = math.max(1, #log - 4), #log do FW:Print(T.Describe(log[i])) end
+    FW:Print("Berufe aus dem Chat (" .. #list .. " Mitglieder):")
+    for _, l in ipairs(list) do FW:Print(l) end
 end

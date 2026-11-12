@@ -469,7 +469,11 @@ function Ach.Context()
         local name = row.name or row.key
         ctx.members[#ctx.members + 1] = { key = row.key, name = name, g = rec and rec.g or nil }
         if rec then
-            if rec.stamp or rec.level or rec.skills then ctx.users = ctx.users + 1 end
+            local realSkills = false
+            for _, s in pairs(rec.skills or {}) do
+                if type(s) == "table" and not s.chat then realSkills = true end
+            end
+            if rec.stamp or rec.level or realSkills then ctx.users = ctx.users + 1 end
             ctx.hours = ctx.hours + (tonumber(rec.played) or 0) / 3600
             local isMaster = false
             for id, s in pairs(rec.skills or {}) do

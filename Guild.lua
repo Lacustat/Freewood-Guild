@@ -54,7 +54,7 @@ Guild.SETTINGS = {
     headShow = true,         -- Affensymbol ueber dem Kopf von Gildenmitgliedern
     headSize = 28,           -- Symbolgroesse in Pixeln (16 bis 64)
     achNotify = true,        -- Hinweisfenster, wenn die Gilde einen Erfolg schafft
-    tradeProbe = true,       -- Berufe-Links im Chat erkennen und beim Oeffnen auslesen (Probe)
+    tradeChat = true,        -- Berufe aus Chat-Links von Gildenmitgliedern merken
     headPlates = true,       -- dafuer Plaketten freundlicher Spieler einschalten
     dungChat = true,         -- Zeile im Gildenchat, wenn man sich fuer einen Dungeon anmeldet
     dungAutoGuild = false,   -- Einladungen von Gildenmitgliedern bei laufender Suche annehmen
@@ -616,7 +616,7 @@ SlashCmdList["FREEWOODGUILD"] = function(msg)
     elseif msg == "gildenrezepte" then
         if Guild.RecipeQuery then Guild.RecipeQuery.Run() end
     elseif msg == "trade" then
-        if Guild.TradeLink then Guild.TradeLink.PrintLog() end
+        if Guild.TradeLink then Guild.TradeLink.PrintList() end
     elseif msg == "refresh" then
         Guild.RequestRoster(true)
     else

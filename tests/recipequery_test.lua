@@ -30,7 +30,7 @@ eq(printed[#printed]:find("nicht moeglich") ~= nil, true, "Meldung nicht moeglic
 
 -- mit Funktionen
 local queried, cur = {}, nil
-_G.C_GuildInfo = { QueryGuildMembersForRecipe = function(skill, rid, lvl)
+_G.C_GuildInfo = { GetGuildRecipesX = function() end, QueryGuildMembersForRecipe = function(skill, rid, lvl)
     queried[#queried + 1] = rid
     if rid == 13 then return nil end   -- abgelehnt
     cur = { skill, rid }
@@ -50,19 +50,24 @@ _G.C_TradeSkillUI = {
 printed = {}
 eq(Q.Run(), true, "Run laeuft")
 eq(#queried, 1, "erste Abfrage gesendet")
+local scanned = table.concat(printed, "\n")
+eq(scanned:find("Gilde/Beruf%-Funktionen") ~= nil, true, "Funktionsliste")
 -- Antwort
 events["GUILD_RECIPE_KNOWN_BY_MEMBERS"]()
-eq(#queried, 2, "zweite Abfrage nach Antwort")
+eq(#queried, 2, "zweite Abfrage (gleiches Rezept, Stufe 0) nach Antwort")
 local joined = table.concat(printed, "\n")
 eq(joined:find("2 Mitglieder, 1 online") ~= nil, true, "Ergebnis mit Anzahl und online")
+eq(joined:find("Ereignis GUILD_RECIPE_KNOWN_BY_MEMBERS") ~= nil, true, "Ereignis mitgeschrieben")
 eq(joined:find("Anna, Bob %(offline%)") ~= nil, true, "Namen")
 events["GUILD_RECIPE_KNOWN_BY_MEMBERS"]()   -- Rezept 12
-events["GUILD_RECIPE_KNOWN_BY_MEMBERS"]()   -- Rezept 13 wird abgelehnt, 14 wartet
+events["GUILD_RECIPE_KNOWN_BY_MEMBERS"]()   -- Rezept 13 folgt
+events["GUILD_RECIPE_KNOWN_BY_MEMBERS"]()   -- 13 wird abgelehnt, 14 wartet
 eq(#queried >= 4, true, "weiter bis zum Ende")
 joined = table.concat(printed, "\n")
 eq(joined:find("abgelehnt") ~= nil, true, "abgelehnte Abfrage gemeldet")
 -- Zeitueberschreitung
 for _, fn in ipairs(timers) do fn() end
+eq(table.concat(printed, "\n"):find("keine Antwort") ~= nil, true, "Zeitueberschreitung gemeldet")
 -- Log gespeichert
 eq(#Q.Log() > 0, true, "Log gespeichert")
 -- kein Fenster

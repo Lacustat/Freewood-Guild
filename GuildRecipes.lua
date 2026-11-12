@@ -471,7 +471,7 @@ function Guild.ShowRecipes(name, profId)
     w.ids = sh and sh.recipes and sh.recipes[profId]
     w.profId = profId
     local skill = sh and sh.skills and sh.skills[profId]
-    w.title:SetText(Guild.Display(name) .. " - " .. Guild.ProfName(profId) .. (skill and (" " .. skill.rank .. "/" .. skill.max) or ""))
+    w.title:SetText(Guild.Display(name) .. " - " .. Guild.ProfName(profId) .. (skill and not skill.chat and (" " .. skill.rank .. "/" .. skill.max) or ""))
     w.info:SetText(w.ids and string.format(L.GUILD_RECIPES_INFO, #w.ids, Guild.FormatAgo(sh.recipeStamp)) or "")
     w.filter:SetText("")
     w:Show()

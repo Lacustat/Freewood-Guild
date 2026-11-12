@@ -4,7 +4,8 @@
 -- Beruf-Links zu oeffnen (geprueft auf OctoWoW/Forever: Klick oeffnet nichts), die Rezepte sind also nicht zu lesen.
 -- Der Link selbst enthaelt aber die Beruf-ID:  trade:<Spieler-GUID>:<Zauber-ID>:<Beruf-ID>   (z. B. ...:3909:197 = Schneiderei).
 -- Dieses Modul liest in jedem Chat-Kanal mit, und wenn der Absender in der Gildenliste steht und dieses Addon nicht hat
--- (keine eigenen Berufsdaten), merkt es sich den Beruf. Die Gildenuebersicht zeigt ihn dann mit "?" statt der Stufe.
+-- (keine eigenen Berufsdaten), merkt es sich den Beruf. Die Gildenuebersicht zeigt ihn dann mit dem Stufentext des Spiels (z. B. "Geselle"), sonst mit "?".
+-- Der Stufentext kommt aus der Zauber-ID im Link (C_Spell.GetSpellSubtext), im Spiel geprueft: 3104 -> "Geselle".
 -- Meldet das Mitglied spaeter selbst seine Berufe (Addon), ersetzen die echten Daten den Eintrag.
 -- UNGEPRUEFT im Spiel.
 
@@ -80,20 +81,27 @@ end
 -- Merken
 ------------------------------------------------------------------------
 
--- Beruf eines Mitglieds ohne Addon eintragen. Rueckgabe: true, wenn neu eingetragen
-function T.Record(key, profId)
+-- Beruf eines Mitglieds ohne Addon eintragen. tier = Stufentext des Spiels (z. B. "Geselle") oder nil.
+-- Rueckgabe: true, wenn der Beruf neu eingetragen wurde
+function T.Record(key, profId, tier)
     if not key or not profId or not Guild.PROF[profId] then return false end
+    if type(tier) ~= "string" or tier == "" or Secret(tier) then tier = nil end
     local db = Guild.DB()
     local rec = db.members[key]
     if rec and rec.stamp then return false end          -- hat das Addon: eigene Daten gelten
     if rec and rec.skills and rec.skills[profId] then
-        rec.skills[profId].at = Now()
+        local s = rec.skills[profId]
+        s.at = Now()
+        if tier and s.tier ~= tier then
+            s.tier = tier                                -- neuerer Link: neue Stufe
+            if Guild.Changed then Guild.Changed() end
+        end
         return false
     end
     rec = rec or {}
     db.members[key] = rec
     rec.skills = rec.skills or {}
-    rec.skills[profId] = { rank = 0, max = 0, chat = true, at = Now() }
+    rec.skills[profId] = { rank = 0, max = 0, chat = true, at = Now(), tier = tier }
     if Guild.Changed then Guild.Changed() end
     return true
 end
@@ -176,7 +184,8 @@ function T.Process(author, msg)
         local sig = key .. "|" .. e.link
         if not seen[sig] or now - seen[sig] > DEDUPE then
             seen[sig] = now
-            pcall(T.Record, key, e.profId)
+            local _, tier = T.SpellText(T.SpellId(e.link))
+            pcall(T.Record, key, e.profId, tier)
             local info = { name = Guild.Display(author), key = key, link = e.link, text = e.text, label = e.label, profId = e.profId }
             for _, h in ipairs(hooks) do pcall(h, info) end
             n = n + 1
@@ -212,7 +221,7 @@ function T.List()
         if type(rec) == "table" and not rec.stamp and type(rec.skills) == "table" then
             local profs = {}
             for id, s in pairs(rec.skills) do
-                if type(s) == "table" and s.chat then profs[#profs + 1] = Guild.ProfName(id) end
+                if type(s) == "table" and s.chat then profs[#profs + 1] = Guild.ProfName(id) .. (s.tier and (" (" .. s.tier .. ")") or "") end
             end
             if #profs > 0 then
                 table.sort(profs)

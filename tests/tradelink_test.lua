@@ -130,7 +130,17 @@ T.Process("Anna", "|Htrade:Player-6948-006B268F:4038:202|h[Ingenieurskunst]|h")
 local joined = table.concat(printed, "\n")
 eq(joined:find("Zauber 4038: Name Ingenieurskunst, Stufentext Experte", 1, true) ~= nil, true, "Fehlersuche zeigt Name und Stufentext")
 T.debug = false
+-- Stufe wird gespeichert und bei neuerem Link ersetzt
+eq(Guild.DB().members["anna"].skills[202] and Guild.DB().members["anna"].skills[202].tier, "Experte", "Stufentext gespeichert")
+_G.C_Spell.GetSpellSubtext = function(id) return id == 4038 and "Fachmann" or "" end
+now = 500
+T.Process("Anna", "|Htrade:Player-6948-006B268F:4038:202|h[Ingenieurskunst]|h")
+eq(Guild.DB().members["anna"].skills[202].tier, "Fachmann", "neuerer Link ersetzt die Stufe")
+eq(T.List()[1]:find("(Fachmann)", 1, true) ~= nil, true, "Liste zeigt die Stufe")
 _G.C_Spell = nil
+now = 700
+T.Process("Anna", "|Htrade:Player-6948-006B268F:4038:202|h[Ingenieurskunst]|h")
+eq(Guild.DB().members["anna"].skills[202].tier, "Fachmann", "ohne Stufentext bleibt die alte")
 
 -- Liste
 local list = T.List()

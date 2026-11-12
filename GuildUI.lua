@@ -237,8 +237,12 @@ local function MakeView(row)
     v.p1, v.p2 = Guild.MainProfs(v.skills)
     local function Rank(id) return v.skills and v.skills[id] and not v.skills[id].chat and v.skills[id].rank or nil end
     v.cook, v.aid, v.fish = Rank(Guild.COOK), Rank(Guild.AID), Rank(Guild.FISH)
-    -- Beruf nur aus einem Chat-Link bekannt (Stufe unbekannt): in der Tabelle "?"
-    local function ChatOnly(id) return v.skills and v.skills[id] and v.skills[id].chat and true or false end
+    -- Beruf nur aus einem Chat-Link bekannt: in der Tabelle der Stufentext des Spiels, sonst "?"
+    local function ChatOnly(id)
+        local s = v.skills and v.skills[id]
+        if not (s and s.chat) then return false end
+        return s.tier or "?"
+    end
     v.cookQ, v.aidQ, v.fishQ = ChatOnly(Guild.COOK), ChatOnly(Guild.AID), ChatOnly(Guild.FISH)
     v.played = sh and sh.played or nil
     if sh and sh.level and sh.level == row.level then
@@ -262,9 +266,9 @@ local COLS = {
     { id = "rank", label = "GUILD_COL_RANK", w = 9, key = function(v) return v.row.rankIndex end },
     { id = "p1", label = "GUILD_COL_PROF1", w = 12, key = function(v) return ProfSort(v, "p1") end },
     { id = "p2", label = "GUILD_COL_PROF2", w = 12, key = function(v) return ProfSort(v, "p2") end },
-    { id = "cook", label = "GUILD_COL_COOK", w = 6, key = function(v) return v.cook or (v.cookQ and 0) or -1 end },
-    { id = "aid", label = "GUILD_COL_AID", w = 6, key = function(v) return v.aid or (v.aidQ and 0) or -1 end },
-    { id = "fish", label = "GUILD_COL_FISH", w = 6, key = function(v) return v.fish or (v.fishQ and 0) or -1 end },
+    { id = "cook", label = "GUILD_COL_COOK", w = 9, key = function(v) return v.cook or (v.cookQ and 0) or -1 end },
+    { id = "aid", label = "GUILD_COL_AID", w = 9, key = function(v) return v.aid or (v.aidQ and 0) or -1 end },
+    { id = "fish", label = "GUILD_COL_FISH", w = 9, key = function(v) return v.fish or (v.fishQ and 0) or -1 end },
     { id = "played", label = "GUILD_COL_PLAYED", w = 8, key = function(v) return v.played or -1 end },
     { id = "xp", label = "GUILD_COL_XP", w = 11, key = function(v) return v.frac or -1 end },
     { id = "gold", label = "GUILD_COL_GOLD", w = 9, owner = true, key = function(v) return v.gold or -1 end },
@@ -532,7 +536,7 @@ local function BuildMembers(content)
                 local pid = v[id]
                 if pid then
                     local s = v.skills and v.skills[pid]
-                    cell:SetText(Guild.ProfName(pid) .. (s and (not s.chat) and (" " .. s.rank) or ""))
+                    cell:SetText(Guild.ProfName(pid) .. (s and (not s.chat) and (" " .. s.rank) or (s and s.chat and s.tier and (" (" .. s.tier .. ")")) or ""))
                     local has = v.sh and v.sh.recipes and v.sh.recipes[pid]
                     cell:SetTextColor(UI.Color(has and "goldLight" or "textDim"))
                 else
@@ -540,7 +544,7 @@ local function BuildMembers(content)
                     cell:SetTextColor(UI.Color("textDim"))
                 end
             elseif id == "cook" or id == "aid" or id == "fish" then
-                cell:SetText(v[id] and tostring(v[id]) or (v[id .. "Q"] and "?") or "-")
+                cell:SetText(v[id] and tostring(v[id]) or (v[id .. "Q"] and tostring(v[id .. "Q"])) or "-")
             elseif id == "played" then cell:SetText(Guild.FormatPlayed(v.played))
             elseif id == "xp" then cell:SetText("")
             elseif id == "gold" then cell:SetText(v.gold and FW.Util.FormatMoney(v.gold, { noCopper = true }) or "-")

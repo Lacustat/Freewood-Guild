@@ -442,15 +442,16 @@ local function BuildMembers(content)
                 h.arrow:SetTexture("Interface\\Buttons\\Arrow-Down-Up")
                 h.arrow:SetPoint("RIGHT", h, "RIGHT", -3, 0)
                 headers[c.id] = h
+                if UI.LegionSkin and UI.LegionSkin.ForceSlim then UI.LegionSkin.ForceSlim(h) end   -- Holzdesign: schlanke Planke ohne Seil
             end
             h:ClearAllPoints()
             h:SetPoint("TOPLEFT", headerBar, "TOPLEFT", colX[i], 0)
             h:SetWidth(colW[i] - 2)
             h:SetLabel(L[c.label])
             h.label:ClearAllPoints()
-            h.label:SetPoint("LEFT", h, "LEFT", 4, 0)
+            h.label:SetPoint("LEFT", h, "LEFT", 14, 0)
             h.label:SetPoint("RIGHT", h, "RIGHT", -14, 0)
-            h.label:SetJustifyH("LEFT")
+            h.label:SetJustifyH("CENTER")
             h:SetScript("OnClick", function()
                 if M.sort.col == c.id then M.sort.asc = not M.sort.asc else M.sort.col = c.id; M.sort.asc = true end
                 f.Refresh()

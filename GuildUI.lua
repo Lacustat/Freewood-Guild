@@ -742,7 +742,7 @@ if UI.RegisterSettingsSection then
     UI:RegisterSettingsSection("guild-module", {
         category = "general",
         order = 60,
-        height = 570,
+        height = 594,
         build = function(parent)
             local L = FW.L
             local f, stack = UI.CreateSection(parent, L.GUILD_SET_TITLE)
@@ -756,6 +756,7 @@ if UI.RegisterSettingsSection then
             Box(L.GUILD_SET_GOLD, "shareGold")
             Box(L.GUILD_SET_BOARD, "boardNotify")
             Box(L.GUILD_SET_ACH, "achNotify")
+            Box(L.GUILD_SET_TRADELINK, "tradeProbe")
             Box(L.GUILD_SET_MAPSHOW, "mapShow")
             Box(L.GUILD_SET_MAPSHARE, "mapShare")
             local sizeLabel = UI.CreateLabel(f, "", { size = 12 })

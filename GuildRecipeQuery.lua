@@ -297,6 +297,78 @@ function Q.ExpandAll()
     return opened
 end
 
+-- Weitere Versuche (0.9.2), falls das Aufklappen keine Spielerzeilen bringt. Jeder Schritt schreibt Anzahl und Rohwerte neu.
+local function Num()
+    if not G.GetNumGuildTradeSkill then return 0 end
+    local ok, v = pcall(G.GetNumGuildTradeSkill)
+    return ok and tonumber(v) or 0
+end
+
+-- Zeilen hinter der Anzahl direkt abfragen (nur Zeilen mit Werten ausgeben, hoechstens 6)
+function Q.PeekBeyond(n)
+    if not G.GetGuildTradeSkillInfo then return 0 end
+    local shown = 0
+    for i = n + 1, n + 40 do
+        local res = { pcall(G.GetGuildTradeSkillInfo, i) }
+        if res[1] and res[2] ~= nil then
+            table.remove(res, 1)
+            for k = 1, #res do
+                if type(res[k]) == "string" and Secret(res[k]) then res[k] = "<geheim>" end
+            end
+            shown = shown + 1
+            if shown <= 6 then Out("hinter der Anzahl " .. i .. ": " .. Join((table.unpack or unpack)(res))) end
+        end
+    end
+    Out("Zeilen hinter der Anzahl (" .. (n + 1) .. "-" .. (n + 40) .. ") mit Werten: " .. shown)
+    return shown
+end
+
+local function Try(name, ...)
+    local fn = G[name]
+    if not fn then Out(name .. ": fehlt"); return false end
+    local ok, a, b = pcall(fn, ...)
+    Out(name .. "(" .. Join(...) .. "): " .. (ok and ("ok " .. tostring(a) .. (b ~= nil and (", " .. tostring(b)) or "")) or ("Fehler " .. tostring(a))))
+    return ok
+end
+
+function Q.ExtraSteps()
+    local steps = {
+        function() Out("Schritt A: Zeilen hinter der Anzahl"); Q.PeekBeyond(Num()) end,
+        function() Out("Schritt B: ExpandGuildTradeSkillHeader(0)"); Try("ExpandGuildTradeSkillHeader", 0) end,
+        function() Out("Schritt C: erste Ueberschrift zu- und wieder aufklappen"); Try("CollapseGuildTradeSkillHeader", 1); Try("ExpandGuildTradeSkillHeader", 1) end,
+        function()
+            Out("Schritt D: Filter zuruecksetzen")
+            Try("SetGuildTradeSkillItemNameFilter", "")
+            Try("SetGuildTradeSkillCategoryFilter", 0)
+            Try("SetGuildTradeSkillCategoryFilter", -1)
+        end,
+        function()
+            local ok, id = pcall(G.GetGuildTradeSkillInfo, 1)
+            Out("Schritt E: Kategoriefilter auf " .. tostring(ok and id or "?"))
+            if ok and id then Try("SetGuildTradeSkillCategoryFilter", id); Try("ExpandGuildTradeSkillHeader", 1) end
+        end,
+    }
+    local i = 0
+    local function Next()
+        i = i + 1
+        local step = steps[i]
+        if not step then Out("Weitere Versuche beendet"); return end
+        pcall(step)
+        local function After()
+            local n = Num()
+            Out("  -> Eintraege jetzt: " .. n)
+            if n > 0 then
+                local okI, a, c = pcall(G.GetGuildTradeSkillInfo, 1)
+                Out("  -> Zeile 1: " .. (okI and Join(G.GetGuildTradeSkillInfo(1)) or tostring(a)))
+                if n > 10 then pcall(Q.ReadBoard) end
+            end
+            Next()
+        end
+        if G.C_Timer and G.C_Timer.After then G.C_Timer.After(EXPAND_WAIT, After) else After() end
+    end
+    Next()
+end
+
 function Q.RunBoard()
     Out("Gilden-Berufsliste: Funktionen QueryGuildRecipes " .. (G.QueryGuildRecipes and "+" or "-") ..
         ", GetNumGuildTradeSkill " .. (G.GetNumGuildTradeSkill and "+" or "-") ..
@@ -317,7 +389,7 @@ function Q.RunBoard()
     end
     local ok, err = pcall(G.QueryGuildRecipes)
     if not ok then Out("QueryGuildRecipes: Fehler " .. tostring(err)); return false end
-    local function Read() pcall(Q.ReadBoard) end
+    local function Read() pcall(Q.ReadBoard); pcall(Q.ExtraSteps) end
     local function Later()
         local opened = Q.ExpandAll()
         Out("Ueberschriften aufgeklappt: " .. opened .. (G.ExpandGuildTradeSkillHeader and "" or " (ExpandGuildTradeSkillHeader fehlt)"))

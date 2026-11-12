@@ -84,13 +84,24 @@ local expandedSet, expanded = {}, false
 _G.ExpandGuildTradeSkillHeader = function(i) expandedSet[i] = true; expanded = true end
 _G.GetGuildTradeSkillInfo = function(i) return 164, not expandedSet[i], "icon", "Schmiedekunst", 3, 3, 3, "Anna", "MAGE", true end
 _G.CanViewGuildRecipes = function(id) return id == 164 end
+local zeroCalled, filterCalled = false, false
+_G.CollapseGuildTradeSkillHeader = function() end
+_G.SetGuildTradeSkillItemNameFilter = function() filterCalled = true end
+_G.SetGuildTradeSkillCategoryFilter = function() end
+local baseExpand = _G.ExpandGuildTradeSkillHeader
+_G.ExpandGuildTradeSkillHeader = function(i) if i == 0 then zeroCalled = true end baseExpand(i) end
 eq(Q.RunBoard(), true, "Berufsliste gestartet")
-for _, fn in ipairs(timers) do fn() end
+local ti = 1
+while timers[ti] do timers[ti](); ti = ti + 1 end
 local pj = table.concat(printed, "\n")
 eq(pj:find("2 Eintraege") ~= nil, true, "Anzahl Eintraege")
 eq(expanded, true, "Ueberschriften aufgeklappt")
 eq(pj:find("Ueberschriften aufgeklappt: 2") ~= nil, true, "Anzahl aufgeklappt gemeldet")
 eq(pj:find("1: 164, false, icon, Schmiedekunst") ~= nil, true, "Eintrag mit Rohwerten (nach dem Aufklappen)")
+eq(zeroCalled, true, "Expand(0) versucht")
+eq(filterCalled, true, "Filter versucht")
+eq(pj:find("Zeilen hinter der Anzahl", 1, true) ~= nil, true, "Zeilen hinter der Anzahl geprueft")
+eq(pj:find("Weitere Versuche beendet", 1, true) ~= nil, true, "Versuche beendet")
 eq(pj:find("CanViewGuildRecipes ja fuer: " .. Guild.ProfName(164), 1, true) ~= nil, true, "CanView")
 _G.QueryGuildRecipes = nil
 printed = {}

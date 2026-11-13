@@ -799,8 +799,17 @@ if UI.RegisterSettingsSection then
                 function() return Guild.Setting("headShow") ~= false end,
                 function(v) Guild.DB().settings.headShow = v and true or false; Apply() end), { fit = true })
             stack:Add(UI.CreateCheckbox(f, L.GUILD_SET_HEADPLATES,
-                function() return Guild.Setting("headPlates") ~= false end,
-                function(v) Guild.DB().settings.headPlates = v and true or false; Apply() end), { fit = true })
+                function()
+                    if Guild.Head and Guild.Head.Sync then pcall(Guild.Head.Sync) end
+                    return Guild.Setting("headPlates") ~= false
+                end,
+                function(v)
+                    if Guild.Head and Guild.Head.SetPlates then Guild.Head.SetPlates(v and true or false) else Guild.DB().settings.headPlates = v and true or false end
+                    Apply()
+                end), { fit = true })
+            stack:Add(UI.CreateCheckbox(f, L.GUILD_SET_HEADINST,
+                function() return Guild.Setting("headInst") ~= false end,
+                function(v) Guild.DB().settings.headInst = v and true or false; Apply() end), { fit = true })
             stack:Add(UI.CreateCheckbox(f, L.GUILD_SET_HEADBARS,
                 function() return Guild.Setting("headBars") ~= false end,
                 function(v) Guild.DB().settings.headBars = v and true or false; Apply() end), { fit = true })

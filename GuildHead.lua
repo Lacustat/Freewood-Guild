@@ -1,8 +1,10 @@
 -- Freewood-Guild: Affensymbol ueber dem Kopf von Gildenmitgliedern.
 -- Das Symbol haengt an der Namensplakette des Spielers (C_NamePlate, wie die Ziel-Symbole von Freewood-Quest). Der Gildenleiter
 -- bekommt das Symbol mit der Krone. Der eigene Charakter bekommt keines. Nur du siehst die Symbole.
--- Einstellungen: headShow (an/aus), headSize (16 bis 64 Pixel), headPlates (Plaketten freundlicher Spieler einschalten und ihr Bild
--- ausblenden, nur das Symbol bleibt; der alte Wert der Spieleinstellung wird gemerkt und beim Ausschalten zurueckgesetzt).
+-- Einstellungen: headShow (an/aus), headSize (16 bis 64 Pixel), headBars (Lebensbalken/Name bleiben sichtbar; aus: nur das Symbol),
+-- headInst (Symbol auch in Instanzen), headPlates (gleichgeschaltet mit der Spieleinstellung "Plaketten freundlicher Spieler": die
+-- Spieleinstellung ist die Wahrheit, unser Haken folgt ihr und umgekehrt; das Addon schaltet sie nie von selbst zurueck).
+-- In Instanzen greift das Addon nicht in die Plaketten ein (Blizzard-Standard), nur das Symbol laesst sich dort ein-/ausschalten.
 -- UNGEPRUEFT im Spiel.
 
 local ADDON, NS = ...
@@ -62,7 +64,7 @@ end
 ------------------------------------------------------------------------
 
 local icons = setmetatable({}, { __mode = "k" })   -- Plakette -> Symbol
-local hideFriendly, cvarPending = false, false
+local cvarPending = nil      -- Wert ("1"/"0"), der nach dem Kampf in die Spieleinstellung geschrieben wird
 
 local function PlateOf(unit)
     local NP = G.C_NamePlate
@@ -112,15 +114,25 @@ end
 
 local function InCombat() return G.InCombatLockdown and G.InCombatLockdown() end
 
+-- Sind wir in einer Instanz (Dungeon, Schlachtzug ...)? Dort bleibt alles beim Blizzard-Standard.
+function Head.InInstance()
+    if not G.IsInInstance then return false end
+    local ok, inst = pcall(G.IsInInstance)
+    return ok and inst and true or false
+end
+
 -- Eine Einheit (Token) pruefen und das Symbol setzen oder entfernen
 function Head.Update(unit)
     local plate = PlateOf(unit)
     if not plate then return nil end
-    local show = Guild.Setting("headShow") ~= false
+    local inst = Head.InInstance()
+    local show = Guild.Setting("headShow") ~= false and not (inst and Guild.Setting("headInst") == false)
     local kind = show and Head.Classify(unit) or nil
-    -- Plakettenbild freundlicher Spieler ausblenden, wenn so gewuenscht
+    -- Plakettenbild freundlicher Spieler ausblenden (nur ausserhalb von Instanzen und nur, wenn "Lebensbalken sichtbar" aus ist)
     local friendly = G.UnitIsPlayer and G.UnitIsPlayer(unit) and not (G.UnitCanAttack and G.UnitCanAttack("player", unit))
-    SetPlateVisible(plate, hideFriendly and Guild.Setting("headBars") == false and show and friendly and not (G.UnitIsUnit and G.UnitIsUnit(unit, "player")))
+    local hide = Guild.Setting("headShow") ~= false and Guild.Setting("headBars") == false and not inst and friendly
+        and not (G.UnitIsUnit and G.UnitIsUnit(unit, "player"))
+    SetPlateVisible(plate, hide and true or false)
     local f = icons[plate]
     if not kind then
         if f then f:Hide() end
@@ -165,32 +177,48 @@ local function CVarName()
     return nil
 end
 
-function Head.ApplyPlateMode(forceOff)
+local function WriteCVar(name, value)
+    if InCombat() then cvarPending = value; return end
+    cvarPending = nil
+    pcall(G.SetCVar, name, value)
+end
+
+-- Gleichschaltung mit der Spieleinstellung. Die Spieleinstellung ist die Wahrheit: unser Haken (headPlates) folgt ihr.
+-- Nur beim allerersten Start (frische Installation) wird sie einmal eingeschaltet, damit die Symbole sichtbar sind;
+-- danach schaltet das Addon sie nie von selbst um. Eine Einstellung aus der alten Version (gemerkter Ursprungswert)
+-- wird uebernommen: der aktuelle Wert der Spieleinstellung gilt.
+function Head.Sync()
     local st = Guild.DB().settings
-    local want = (not forceOff) and Guild.Setting("headShow") ~= false and Guild.Setting("headPlates") ~= false
     local name, cur = CVarName()
-    cvarPending = false
-    if want and name then
-        if st.origFriendlyPlayerPlates == nil then st.origFriendlyPlayerPlates = cur end
-        if st.origFriendlyPlayerPlates ~= "1" then
-            hideFriendly = true
-            if cur ~= "1" then
-                if InCombat() then cvarPending = true else pcall(G.SetCVar, name, "1") end
-            end
+    if not name then return end
+    if cvarPending then return end                  -- eigener Schreibvorgang wartet auf das Kampfende
+    if not st.plateInit then
+        if st.origFriendlyPlayerPlates ~= nil then
+            st.headPlates = (cur == "1")
+            st.origFriendlyPlayerPlates = nil
+        elseif st.headShow ~= false and st.headPlates ~= false and cur ~= "1" then
+            WriteCVar(name, "1")
+        elseif cur == "1" then
+            st.headPlates = true
         else
-            hideFriendly = false     -- der Spieler hat die Plaketten selbst an
+            st.headPlates = false
         end
-    else
-        hideFriendly = false
-        if name and st.origFriendlyPlayerPlates ~= nil then
-            if InCombat() then
-                cvarPending = true
-            else
-                if cur ~= st.origFriendlyPlayerPlates then pcall(G.SetCVar, name, st.origFriendlyPlayerPlates) end
-                st.origFriendlyPlayerPlates = nil
-            end
-        end
+        st.plateInit = true
+        return
     end
+    if cur == "1" and st.headPlates ~= true then st.headPlates = true
+    elseif cur == "0" and st.headPlates ~= false then st.headPlates = false end
+end
+
+-- Unser Haken wurde geaendert: Spieleinstellung genauso setzen
+function Head.SetPlates(on)
+    local st = Guild.DB().settings
+    st.headPlates = on and true or false
+    st.plateInit = true
+    st.origFriendlyPlayerPlates = nil
+    local name, cur = CVarName()
+    local want = on and "1" or "0"
+    if name and cur ~= want then WriteCVar(name, want) end
 end
 
 -- Messzeilen fuer /fwguild stats
@@ -199,7 +227,7 @@ function Head.DiagLines()
     local function Add(...) out[#out + 1] = string.format(...) end
     local st = Guild.DB().settings
     local name, cur = CVarName()
-    Add("Affe ueber dem Kopf: an=%s, Plaketten selbst einschalten=%s, Lebensbalken zeigen=%s", tostring(Guild.Setting("headShow")), tostring(Guild.Setting("headPlates")), tostring(Guild.Setting("headBars") ~= false))
+    Add("Affe ueber dem Kopf: an=%s, Plaketten (Haken)=%s, Lebensbalken zeigen=%s, in Instanzen=%s, jetzt in Instanz=%s", tostring(Guild.Setting("headShow")), tostring(Guild.Setting("headPlates")), tostring(Guild.Setting("headBars") ~= false), tostring(Guild.Setting("headInst") ~= false), tostring(Head.InInstance()))
     local tried = {}
     for _, n in ipairs(CVAR_NAMES) do
         local okc, v = false, nil
@@ -207,7 +235,7 @@ function Head.DiagLines()
         tried[#tried + 1] = n .. "=" .. tostring(okc and v)
     end
     Add("Geprueft: %s", table.concat(tried, ", "))
-    Add("Spieleinstellung %s = %s (gemerkter alter Wert: %s), Bild ausblenden=%s, offen wegen Kampf=%s", tostring(name), tostring(cur), tostring(st.origFriendlyPlayerPlates), tostring(hideFriendly), tostring(cvarPending))
+    Add("Spieleinstellung %s = %s, gleichgeschaltet=%s, offen wegen Kampf=%s", tostring(name), tostring(cur), tostring(st.plateInit == true), tostring(cvarPending))
     local NP = G.C_NamePlate
     local ok, plates = false, nil
     if NP and NP.GetNamePlates then ok, plates = pcall(NP.GetNamePlates) end
@@ -227,7 +255,7 @@ end
 
 -- nach Aenderung einer Einstellung
 function Head.Apply()
-    pcall(Head.ApplyPlateMode)
+    pcall(Head.Sync)
     pcall(Head.UpdateAll)
 end
 
@@ -236,7 +264,7 @@ end
 ------------------------------------------------------------------------
 
 local ev = G.CreateFrame("Frame")
-for _, e in ipairs({ "NAME_PLATE_UNIT_ADDED", "NAME_PLATE_UNIT_REMOVED", "PLAYER_ENTERING_WORLD", "PLAYER_REGEN_ENABLED", "GUILD_ROSTER_UPDATE" }) do
+for _, e in ipairs({ "NAME_PLATE_UNIT_ADDED", "NAME_PLATE_UNIT_REMOVED", "PLAYER_ENTERING_WORLD", "PLAYER_REGEN_ENABLED", "GUILD_ROSTER_UPDATE", "CVAR_UPDATE" }) do
     pcall(ev.RegisterEvent, ev, e)
 end
 ev:SetScript("OnEvent", function(_, event, unit)
@@ -249,7 +277,12 @@ ev:SetScript("OnEvent", function(_, event, unit)
             SetPlateVisible(plate, false)
         end
     elseif event == "PLAYER_REGEN_ENABLED" then
-        if cvarPending then pcall(Head.ApplyPlateMode) end
+        if cvarPending then
+            local name = CVarName()
+            local v = cvarPending
+            cvarPending = nil
+            if name then pcall(G.SetCVar, name, v) end
+        end
         pcall(Head.UpdateAll)
     else
         pcall(Head.Apply)
@@ -262,6 +295,7 @@ ev:SetScript("OnUpdate", function(_, elapsed)
     acc = acc + (elapsed or 0)
     if acc >= 3 then
         acc = 0
+        pcall(Head.Sync)             -- Aenderung in den Spieleinstellungen uebernehmen (auch ohne CVAR_UPDATE)
         pcall(Head.UpdateAll)
     end
 end)

@@ -44,6 +44,8 @@ local many = {}
 for i = 1, 11 do many[i] = { key = "k" .. i, name = "N" .. i, label = "X", size = 1, roles = { D = true } } end
 lines, more = W.Lines(many)
 eq(#lines, 8, "hoechstens 8 Zeilen"); eq(more, 3, "drei weitere")
+lines, more = W.Lines(many, 3)
+eq(#lines, 3, "Legion-Rahmen: 3 Zeilen"); eq(more, 8, "Legion-Rahmen: acht weitere")
 lines, more = W.Lines(nil)
 eq(#lines, 0, "leer"); eq(more, 0, "leer: nichts verborgen")
 
@@ -82,6 +84,8 @@ local function Proxy()
     return setmetatable({}, { __index = function() return function() return Proxy() end end })
 end
 FW.UI = Proxy()
+FW.UI.LegionSkin = { active = false }
+FW.UI.CreatePanel = function() local p = Proxy(); p.bg = Proxy(); p.fwBorder = { top = Proxy(), left = Proxy() }; return p end
 FW.On = function() end
 _G.CreateFrame = function() return Proxy() end
 _G.UIParent = Proxy()
@@ -89,7 +93,13 @@ assert(loadfile("GuildDungeonWin.lua"))("Freewood-Guild", NS)
 W = Guild.DungeonWin
 Guild.Dungeon.list = { a = { key = "a", name = "Anna", class = "PRIEST", label = "Todesminen", size = 1, roles = { H = true }, since = 1, at = 1000 } }
 Guild.Dungeon.mine = nil
-eq(pcall(W.Refresh), true, "Refresh ohne Fehler")
+local okr, er = pcall(W.Refresh); eq(okr, true, "Refresh ohne Fehler: " .. tostring(er))
+eq(W.LegionOn(), false, "Legion aus")
+FW.UI.LegionSkin.active = true
+eq(W.LegionOn(), true, "Legion an")
+eq(pcall(W.Refresh), true, "Refresh im Legion-Design ohne Fehler")
+FW.UI.LegionSkin.active = false
+eq(pcall(W.Refresh), true, "Refresh zurueck ohne Fehler")
 eq(pcall(W.ResetPos), true, "Position zuruecksetzen")
 eq(Guild.DB().settings.dungWinPos, nil, "Position geloescht")
 Guild.Dungeon.list = {}

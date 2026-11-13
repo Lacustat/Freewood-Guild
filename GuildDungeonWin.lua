@@ -2,7 +2,10 @@
 -- (dieselben Daten wie die Seite "Dungeon Browser", ueber die versteckten Gildennachrichten). Es oeffnet sich, sobald jemand
 -- sucht, und schliesst sich, wenn niemand mehr sucht. Startposition: unten rechts bei Aktionsleiste 3; danach frei
 -- verschiebbar (die Lage wird gemerkt). Linksklick auf eine Zeile fluestert, Rechtsklick laedt ein. Ein-/Ausschalten in den
--- Einstellungen des Dungeon-Browsers (dungWin) und mit dem X im Fenster (bis jemand Neues sucht). UNGEPRUEFT im Spiel.
+-- Einstellungen des Dungeon-Browsers (dungWin) und mit dem X im Fenster (bis jemand Neues sucht).
+-- Im Design "Legion der Affen" (UI.LegionSkin.active) sitzt das Fenster in einem festen Bildrahmen (Media/suche_rahmen.tga, 512x512,
+-- mit Affenkopf, Aexten, Bannern): feste Groesse, innen Platz fuer Titel und 3 Zeilen, weitere als "+n weitere". Sonst wie bisher.
+-- UNGEPRUEFT im Spiel.
 --
 -- Inhalt: Zeilen und Anzeigeregeln (pruefbar), Klick, Fenster
 
@@ -20,18 +23,25 @@ local Win = {}
 Guild.DungeonWin = Win
 
 local MAX_ROWS = 8
+local LEG_ROWS = 3
+-- Legion-Rahmen: aussen 360 px (Bild 1024 px -> Faktor 0,3516); freie Innenflaeche des Bildes x 176-836, y 412-768, hier mit 2 px Rand
+local LEG_SIZE = 360
+local LEG_L, LEG_T, LEG_W, LEG_H = 64, 147, 228, 121
+local LEG_FILL = { 0.09, 0.07, 0.06, 0.96 }    -- dunkler Grund hinter der Innenflaeche (Loch des Bildes: x 140-881, y 343-881)
+local LEG_ART = "Interface\\AddOns\\Freewood-Guild\\Media\\suche_rahmen.tga"
 
 function Win.On()
     return Guild.Setting("dungWin") ~= false
 end
 
 -- Zeilen fuer die Anzeige aus der Liste des Dungeon-Browsers. Rueckgabe: Zeilen { key, name, class, self, label, text }, Anzahl nicht gezeigter
-function Win.Lines(list)
+function Win.Lines(list, maxRows)
     local L = FW.L
     local out = {}
     list = list or {}
+    maxRows = maxRows or MAX_ROWS
     for _, e in ipairs(list) do
-        if #out >= MAX_ROWS then break end
+        if #out >= maxRows then break end
         local words = Dung.RoleWords(e.roles or {})
         local what
         if (e.size or 1) > 1 then
@@ -116,6 +126,40 @@ function Win.ResetPos()
     if frame then ApplyPos() end
 end
 
+-- Legion-Design aktiv? (Core: UI.LegionSkin.active)
+function Win.LegionOn()
+    local S = UI.LegionSkin
+    return S and S.active and true or false
+end
+
+-- Aussehen und Ankerpunkte je nach Design setzen (Rahmen aus Bild oder schlichtes Fenster)
+local function ApplyLook(f)
+    local leg = Win.LegionOn()
+    f.leg = leg
+    if leg then
+        f:SetSize(LEG_SIZE, LEG_SIZE)
+    end
+    if f.bg then f.bg:SetShown(not leg) end
+    local b = f.fwBorder
+    if b then for _, t in pairs(b) do if t.SetShown then t:SetShown(not leg) end end end
+    f.art:SetShown(leg)
+    f.fill:SetShown(leg)
+    f.title:ClearAllPoints()
+    f.close:ClearAllPoints()
+    f.more:ClearAllPoints()
+    if leg then
+        f.title:SetPoint("TOPLEFT", f, "TOPLEFT", LEG_L + 2, -LEG_T - 1)
+        f.close:SetSize(16, 16)
+        f.close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -(LEG_SIZE - LEG_L - LEG_W), -LEG_T + 1)
+        f.more:SetPoint("BOTTOMLEFT", f, "TOPLEFT", LEG_L + 2, -(LEG_T + LEG_H) + 1)
+    else
+        f.title:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -6)
+        f.close:SetSize(18, 18)
+        f.close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -4, -4)
+        f.more:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 10, 4)
+    end
+end
+
 local function Build()
     if frame then return frame end
     local L = FW.L
@@ -131,13 +175,19 @@ local function Build()
     frame = f
     ApplyPos()
 
+    -- Rahmenbild (nur im Legion-Design) mit dunklem Grund dahinter
+    f.fill = f:CreateTexture(nil, "BACKGROUND")
+    f.fill:SetPoint("TOPLEFT", f, "TOPLEFT", 49, -120)
+    f.fill:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -(LEG_SIZE - 310), 50)
+    f.fill:SetColorTexture(LEG_FILL[1], LEG_FILL[2], LEG_FILL[3], LEG_FILL[4])
+    f.art = f:CreateTexture(nil, "ARTWORK")
+    f.art:SetAllPoints()
+    f.art:SetTexture(LEG_ART)
     f.title = UI.CreateLabel(f, L.DUNG_WIN_TITLE, { size = 12, color = "goldLight" })
-    f.title:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -6)
     f.title:SetHeight(14)
     f.close = UI.CreateButton(f, "x", 18, 18, function() Win.Dismiss(f.count or 0); f:Hide() end)
-    f.close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -4, -4)
     f.more = UI.CreateLabel(f, "", { size = 10, color = "textDim" })
-    f.more:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 10, 4)
+    ApplyLook(f)
     f:Hide()
     return f
 end
@@ -176,14 +226,18 @@ local function GetRow(i)
 end
 
 function Win.Refresh()
-    local lines, more = Win.Lines(Dung.List())
-    if not Win.ShouldShow(#lines) then
+    local leg = Win.LegionOn()
+    local lines, more = Win.Lines(Dung.List(), leg and LEG_ROWS or MAX_ROWS)
+    if not Win.ShouldShow(#lines + more) then
         if frame then frame:Hide() end
         return
     end
     local f = Build()
+    if f.leg ~= leg then ApplyLook(f) end
     local L = FW.L
-    f.count = #lines
+    f.count = #lines + more
+    local x0, y0, x1, pitch = 6, HEAD, -6, ROW_H + 2
+    if leg then x0, y0, x1, pitch = LEG_L, LEG_T + 16, -(LEG_SIZE - LEG_L - LEG_W), ROW_H + 1 end
     for i, line in ipairs(lines) do
         local r = GetRow(i)
         r.line = line
@@ -193,17 +247,20 @@ function Win.Refresh()
         if cr then r.line1:SetTextColor(cr, cg, cb) else r.line1:SetTextColor(UI.Color("text")) end
         r.line2:SetText(line.text)
         r:ClearAllPoints()
-        r:SetPoint("TOPLEFT", f, "TOPLEFT", 6, -HEAD - (i - 1) * (ROW_H + 2))
-        r:SetPoint("TOPRIGHT", f, "TOPRIGHT", -6, -HEAD - (i - 1) * (ROW_H + 2))
+        r:SetPoint("TOPLEFT", f, "TOPLEFT", x0, -y0 - (i - 1) * pitch)
+        r:SetPoint("TOPRIGHT", f, "TOPRIGHT", x1, -y0 - (i - 1) * pitch)
         r:Show()
     end
     for i = #lines + 1, #rows do rows[i].line = nil; rows[i]:Hide() end
     f.more:SetText(more > 0 and string.format(L.DUNG_WIN_MORE, more) or "")
-    f:SetHeight(HEAD + #lines * (ROW_H + 2) + (more > 0 and 14 or 6))
+    if not leg then
+        f:SetHeight(HEAD + #lines * (ROW_H + 2) + (more > 0 and 14 or 6))
+    end
     f:Show()
 end
 
 FW:On("GUILD_MODULE_DUNGEON", function() pcall(Win.Refresh) end, owner)
+FW:On("DESIGN_CHANGED", function() pcall(Win.Refresh) end, owner)
 
 -- Suchen laufen nach einiger Zeit ab, ohne dass eine Meldung kommt: gelegentlich neu pruefen
 local ticker = G.CreateFrame("Frame")

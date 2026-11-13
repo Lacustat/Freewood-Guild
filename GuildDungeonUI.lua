@@ -153,7 +153,7 @@ local function BuildPage(content)
                 r.bg:SetColorTexture(UI.Color("card", 0.8))
                 r.plan = nil
                 Show(r.btn, false)
-                local name = e.name .. (e.self and (" " .. L.DUNG_YOU) or "")
+                local name = ((e.members and #e.members > 1) and table.concat(e.members, " + ") or e.name) .. (e.self and (" " .. L.DUNG_YOU) or "")
                 r.line1:SetText(name)
                 if e.class and FW.ChatLog then
                     r.line1:SetTextColor(FW.ChatLog.ClassColor(e.class))

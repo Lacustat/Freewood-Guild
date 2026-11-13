@@ -46,6 +46,8 @@ lines, more = W.Lines(many)
 eq(#lines, 8, "hoechstens 8 Zeilen"); eq(more, 3, "drei weitere")
 lines, more = W.Lines(many, 3)
 eq(#lines, 3, "Legion-Rahmen: 3 Zeilen"); eq(more, 8, "Legion-Rahmen: acht weitere")
+lines = W.Lines({ { key = "j", name = "Jinxer Darktide", label = "BDT", size = 3, roles = { T = true }, members = { "Jinxer Darktide", "Pinky Freewood" } } })
+eq(lines[1].title, "Jinxer Darktide + Pinky Freewood", "Gruppe: beide Namen in einer Zeile"); eq(lines[1].name, "Jinxer Darktide", "Klick geht an den Melder")
 lines, more = W.Lines(nil)
 eq(#lines, 0, "leer"); eq(more, 0, "leer: nichts verborgen")
 

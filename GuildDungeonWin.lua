@@ -49,7 +49,10 @@ function Win.Lines(list, maxRows)
         else
             what = string.format(L.DUNG_WIN_SOLO, words)
         end
-        out[#out + 1] = { key = e.key, name = e.name or "?", class = e.class, self = e.self and true or false, label = e.label or "?", text = what }
+        -- Gruppe mit mehreren Gildenmitgliedern: alle Namen in einer Zeile ("Anna + Bob"); angeklickt wird der Melder
+        local title
+        if e.members and #e.members > 1 then title = table.concat(e.members, " + ") end
+        out[#out + 1] = { key = e.key, name = e.name or "?", title = title, class = e.class, self = e.self and true or false, label = e.label or "?", text = what }
     end
     return out, #list - #out
 end
@@ -243,7 +246,7 @@ function Win.Refresh()
         r.line = line
         local cr, cg, cb
         if line.class and FW.ChatLog and FW.ChatLog.ClassColor then cr, cg, cb = FW.ChatLog.ClassColor(line.class) end
-        r.line1:SetText(line.name .. (line.self and (" " .. L.DUNG_YOU) or "") .. "  -  " .. line.label)
+        r.line1:SetText((line.title or line.name) .. (line.self and (" " .. L.DUNG_YOU) or "") .. "  -  " .. line.label)
         if cr then r.line1:SetTextColor(cr, cg, cb) else r.line1:SetTextColor(UI.Color("text")) end
         r.line2:SetText(line.text)
         r:ClearAllPoints()

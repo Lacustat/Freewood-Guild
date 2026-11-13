@@ -4,8 +4,13 @@
 -- (Funktionen, Ereignisse, lesbare Werte) stammen aus der Probe /fwlfg in Freewood-Dev 0.13.5 bis 0.13.8.
 --
 -- Nachricht (Praefix FWGuild1, Gilde):
---   L|r=TH;n=1;h=0.0.1;a=799,800;t=Todesminen   Suche: Rollen (T Tank, H Heiler, D Schaden), Mitglieder, vorhanden T.H.D, Aktivitaeten, Name
+--   L|r=TH;n=1;h=0.0.1;a=799,800;t=Todesminen;l=1;m=Anna,Bob   Suche: Rollen (T Tank, H Heiler, D Schaden), Mitglieder, vorhanden T.H.D,
+--                                               Aktivitaeten, Name, l=1 Gruppenleiter meldet, m = Gildenmitglieder der Gruppe (ab 0.9.10)
 --   L|x                                         Suche beendet
+--
+-- Ab 0.9.10: Pro Gruppe meldet nur der Gruppenleiter (mit allen Gildenmitgliedern der Gruppe) und schreibt hoechstens eine Zeile in den
+-- Gildenchat (bei der Anmeldung, nicht bei Aenderungen). Hat der Leiter das Addon nicht, springt nach etwa 20 s ein Mitglied ein.
+-- Eintraege von Mitgliedern, die in einer gemeldeten Gruppe stehen, werden in der Liste ausgeblendet.
 --
 -- Inhalt: Hilfen, Lesen, Senden, Empfangen, Vorschlag, Einladungen, Ablauf
 
@@ -24,6 +29,8 @@ Guild.Dungeon = Dung
 
 local TTL = 900            -- Sekunden, nach denen eine Suche ohne neue Meldung verschwindet
 local RESEND = 120         -- Sekunden zwischen zwei Meldungen bei laufender Suche
+local FALLBACK = 20       -- Sekunden, nach denen ein Mitglied meldet, wenn der Gruppenleiter nicht meldet
+local COVER_TTL = 360      -- so lange gilt die Meldung eines anderen fuer meine Gruppe
 local CHAT_GAP = 60        -- Sekunden Mindestabstand zwischen zwei Zeilen im Gildenchat
 local ROLE_ORDER = { "T", "H", "D" }
 
@@ -34,7 +41,9 @@ function Dung.NowClock() return Clock() end
 
 Dung.list = {}      -- [Schluessel] = { name, key, roles = {T=,H=,D=}, size, have = {T,H,D}, ids, label, since, at, self }
 Dung.mine = nil     -- eigener Stand: { roles, size, have, ids, label, sig }
-Dung.lastChat = {}  -- [Signatur] = Uhrzeit
+Dung.lastChat = {}  -- [Suche] = Uhrzeit
+Dung.reporting = false   -- melden wir (Leiter oder eingesprungen) die laufende Suche?
+Dung.fallback = false    -- als Nicht-Leiter eingesprungen
 
 ------------------------------------------------------------------------
 -- Hilfen
@@ -121,6 +130,53 @@ function Dung.GroupHave()
     return have, size
 end
 
+-- Name eines Gruppenmitglieds wie in der Gildenliste ("Vorname Nachname"), nil wenn kein Gildenmitglied
+local function MemberName(unit)
+    local fn = G.UnitFullName or G.UnitName
+    if not fn then return nil end
+    local ok, n, second = pcall(fn, unit)
+    if not ok or type(n) ~= "string" or Secret(n) or n == "" then return nil end
+    local cands = {}
+    if type(second) == "string" and not Secret(second) and second ~= "" then cands[#cands + 1] = n .. " " .. second end
+    cands[#cands + 1] = n
+    for _, c in ipairs(cands) do
+        local k = Guild.Key(c)
+        if k and Guild.rowByKey and Guild.rowByKey[k] then return c end
+    end
+    return nil
+end
+
+local function IsLeader(unit)
+    if not G.UnitIsGroupLeader then return false end
+    local ok, v = pcall(G.UnitIsGroupLeader, unit)
+    return ok and not Secret(v) and v == true
+end
+
+-- Gildenmitglieder der eigenen Gruppe: Namen (Leiter zuerst, ich eingeschlossen) und Schluessel-Menge
+function Dung.GroupGuildMembers()
+    local list, keys = {}, {}
+    local function Add(name, leader)
+        local k = Guild.Key(name)
+        if not k or keys[k] then return end
+        keys[k] = true
+        local e = { name = Guild.Display(name), leader = leader }
+        if leader then table.insert(list, 1, e) else list[#list + 1] = e end
+    end
+    Add(Guild.SelfName(), IsLeader("player"))
+    if G.IsInGroup and G.IsInGroup() and G.UnitExists then
+        for i = 1, 4 do
+            local u = "party" .. i
+            if G.UnitExists(u) then
+                local nm = MemberName(u)
+                if nm then Add(nm, IsLeader(u)) end
+            end
+        end
+    end
+    local names = {}
+    for _, e in ipairs(list) do names[#names + 1] = e.name end
+    return names, keys
+end
+
 -- Liest die laufende Suche aus dem Spiel; nil, wenn keine laeuft
 function Dung.ReadSelf()
     local C = G.C_LFGList
@@ -156,8 +212,16 @@ function Dung.ReadSelf()
         if have.D < 3 then roles.D = true end
     end
     local label = Dung.LabelFor(ids)
-    local sig = table.concat(ids, ",") .. "|" .. Dung.RoleString(roles) .. "|" .. (size > 1 and "g" or "s")
-    return { roles = roles, size = size, have = have, ids = ids, label = label, sig = sig }
+    local idsSig = table.concat(ids, ",")
+    local sig = idsSig .. "|" .. Dung.RoleString(roles) .. "|" .. (size > 1 and "g" or "s")
+    local leader = true
+    if size > 1 and G.UnitIsGroupLeader then leader = IsLeader("player") end
+    local members, memberKeys = Dung.GroupGuildMembers()
+    local mk = {}
+    for k in pairs(memberKeys) do mk[#mk + 1] = k end
+    table.sort(mk)
+    return { roles = roles, size = size, have = have, ids = ids, label = label, sig = sig, idsSig = idsSig, leader = leader,
+        members = members, memberKeys = memberKeys, membersSig = table.concat(mk, ",") }
 end
 
 ------------------------------------------------------------------------
@@ -165,8 +229,16 @@ end
 ------------------------------------------------------------------------
 
 function Dung.Encode(m)
-    return string.format("L|r=%s;n=%d;h=%d.%d.%d;a=%s;t=%s", Dung.RoleString(m.roles), m.size or 1,
+    local s = string.format("L|r=%s;n=%d;h=%d.%d.%d;a=%s;t=%s", Dung.RoleString(m.roles), m.size or 1,
         m.have.T or 0, m.have.H or 0, m.have.D or 0, table.concat(m.ids or {}, ","), Clean(m.label))
+    if m.leader then s = s .. ";l=1" end
+    if m.members and #m.members > 0 then
+        local names = {}
+        for i, n in ipairs(m.members) do if i <= 5 then names[#names + 1] = (string.gsub(Clean(n), ",", " ")) end end
+        local withNames = s .. ";m=" .. table.concat(names, ",")
+        if #withNames <= 240 then s = withNames end      -- zu lang: ohne Namen senden (Grenze der Warteschlange 250)
+    end
+    return s
 end
 
 function Dung.Decode(body)
@@ -176,7 +248,16 @@ function Dung.Decode(body)
     local h1, h2, h3 = string.match(f.h or "", "^(%d+)%.(%d+)%.(%d+)$")
     local ids = {}
     for id in string.gmatch(f.a or "", "%d+") do ids[#ids + 1] = tonumber(id) end
+    local members, memberKeys = {}, {}
+    for n in string.gmatch(f.m or "", "[^,]+") do
+        members[#members + 1] = n
+        local k = Guild.Key(n)
+        if k then memberKeys[k] = true end
+    end
     return {
+        leader = f.l == "1",
+        members = members,
+        memberKeys = memberKeys,
         roles = ParseRoles(f.r),
         size = tonumber(f.n) or 1,
         have = { T = tonumber(h1) or 0, H = tonumber(h2) or 0, D = tonumber(h3) or 0 },
@@ -189,7 +270,10 @@ local function ChatLine(m)
     local L = FW.L
     local me = Guild.SelfFirstName() or "?"
     if m.size > 1 then
-        return string.format(L.DUNG_CHAT_GROUP, me, m.label, Dung.RoleWords(m.roles), m.size)
+        if m.members and #m.members > 1 then
+            return string.format(L.DUNG_CHAT_GROUPS, table.concat(m.members, ", "), m.label, Dung.RoleWords(m.roles), m.size)
+        end
+        return string.format(L.DUNG_CHAT_GROUP, (m.members and m.members[1]) or me, m.label, Dung.RoleWords(m.roles), m.size)
     end
     return string.format(L.DUNG_CHAT_SOLO, me, m.label, Dung.RoleWords(m.roles))
 end
@@ -197,9 +281,9 @@ end
 function Dung.SendChat(m)
     if not Guild.Setting("dungChat") or not Guild.InGuild() then return false end
     if not next(m.roles) then return false end
-    local last = Dung.lastChat[m.sig]
+    local last = Dung.lastChat[m.idsSig or m.sig]
     if last and Clock() - last < CHAT_GAP then return false end
-    Dung.lastChat[m.sig] = Clock()
+    Dung.lastChat[m.idsSig or m.sig] = Clock()
     local text = ChatLine(m)
     local fn = (G.C_ChatInfo and G.C_ChatInfo.SendChatMessage) or G.SendChatMessage
     if not fn then return false end
@@ -247,10 +331,33 @@ Share.handlers["L"] = function(key, body, channel, sender)
     if channel and channel ~= "GUILD" then return end
     if body == "x" then
         if Dung.list[key] then Dung.list[key] = nil; Changed() end
+        if Dung.mine then Dung.Schedule(1) end        -- vielleicht meldet jetzt niemand mehr meine Gruppe
         return
     end
     local m = Dung.Decode(body)
-    if m then Dung.Accept(key, sender, m) end
+    if m then
+        Dung.Accept(key, sender, m)
+        if Dung.mine then Dung.Schedule(1) end        -- meldet jemand meine Gruppe, muss ich es nicht
+    end
+end
+
+-- Hat e Vorrang vor f, wenn beide dieselben Spieler melden? Gruppenleiter zuerst, sonst nach Schluessel (auf allen Rechnern gleich)
+local function Beats(e, f)
+    if (e.leader and true or false) ~= (f.leader and true or false) then return e.leader and true or false end
+    return (e.key or "") < (f.key or "")
+end
+Dung.Beats = Beats
+
+-- Meldet schon ein anderer meine Gruppe (frische Meldung, die mich nennt und Vorrang hat)?
+function Dung.Covered()
+    local me = Guild.SelfKey()
+    if not me or not Dung.mine then return false end
+    local mine = { key = me, leader = Dung.mine.leader }
+    local now = Clock()
+    for key, e in pairs(Dung.list) do
+        if key ~= me and e.memberKeys and e.memberKeys[me] and now - e.at < COVER_TTL and Beats(e, mine) then return true end
+    end
+    return false
 end
 
 -- Sortierte Liste fuer die Anzeige (eigene Suche eingeschlossen)
@@ -263,11 +370,22 @@ function Dung.List()
             self = true, key = Guild.SelfKey(), name = Guild.SelfName() or "?", roles = Dung.mine.roles,
             size = Dung.mine.size, have = Dung.mine.have, ids = Dung.mine.ids, label = Dung.mine.label,
             since = Dung.mine.since or Clock(), at = Clock(),
+            leader = Dung.mine.leader, members = Dung.mine.members, memberKeys = Dung.mine.memberKeys,
         }
         local row = Guild.Row and Guild.Row(self.name)
         self.class = row and row.class
         out[#out + 1] = self
     end
+    -- Wer in der Gruppe eines anderen genannt wird, bekommt keine eigene Zeile (die Gruppe steht einmal)
+    local kept = {}
+    for _, e in ipairs(out) do
+        local covered = false
+        for _, f in ipairs(out) do
+            if f ~= e and f.memberKeys and f.memberKeys[e.key] and Beats(f, e) then covered = true; break end
+        end
+        if not covered then kept[#kept + 1] = e end
+    end
+    out = kept
     table.sort(out, function(a, b)
         if a.label ~= b.label then return a.label < b.label end
         if a.since ~= b.since then return a.since < b.since end
@@ -423,31 +541,65 @@ end
 
 local resendAt = nil
 
-function Dung.Update()
+-- Als Nicht-Leiter einspringen, wenn nach FALLBACK Sekunden niemand die Gruppe meldet (der Leiter hat das Addon nicht)
+function Dung.ScheduleFallback()
+    if Dung.fbPending then return end
+    Dung.fbPending = true
+    Share.After(FALLBACK + math.random() * 10, function()
+        Dung.fbPending = false
+        if Dung.mine and not Dung.mine.leader and not Dung.fallback and not Dung.Covered() then
+            Dung.fallback = true
+            Dung.Update()
+        end
+    end)
+end
+
+-- silent: keine Zeile in den Gildenchat (nach /reload bei laufender Suche)
+function Dung.Update(silent)
     local cur = Dung.ReadSelf()
     local old = Dung.mine
     if not cur then
-        if old then
-            Dung.mine = nil
+        Dung.fallback = false
+        Dung.mine = nil
+        if Dung.reporting then
+            Dung.reporting = false
             Dung.SendStop()
-            Changed()
         end
+        if old then Changed() end
         return
     end
-    cur.since = (old and old.sigBase == cur.sig and old.since) or Clock()
-    cur.sigBase = cur.sig
+    cur.since = (old and old.idsSig == cur.idsSig and old.since) or Clock()
     Dung.mine = cur
-    local changed = (not old) or old.sig ~= cur.sig
-    local haveChanged = old and (old.have.T ~= cur.have.T or old.have.H ~= cur.have.H or old.have.D ~= cur.have.D or old.size ~= cur.size)
-    if changed or haveChanged then
-        Dung.Send(cur, changed)
-        resendAt = Clock() + RESEND
+    -- Wer meldet? Der Gruppenleiter (oder wer allein sucht); sonst nur, wer eingesprungen ist
+    local want = cur.leader or Dung.fallback
+    if not cur.leader then
+        if Dung.Covered() then
+            Dung.fallback = false
+            want = false
+        elseif not Dung.fallback then
+            Dung.ScheduleFallback()
+        end
+    end
+    if want then
+        -- Eine Zeile im Gildenchat nur bei der Anmeldung (neue Suche oder anderer Dungeon), nie bei Aenderungen der Gruppe
+        local chatDue = (not Dung.reporting) or (not old) or old.idsSig ~= cur.idsSig
+        local changed = (not Dung.reporting) or (not old) or old.sig ~= cur.sig or old.membersSig ~= cur.membersSig
+            or old.size ~= cur.size or old.have.T ~= cur.have.T or old.have.H ~= cur.have.H or old.have.D ~= cur.have.D
+            or old.leader ~= cur.leader
+        if changed then
+            Dung.Send(cur, chatDue and not silent)
+            resendAt = Clock() + RESEND
+        end
+        Dung.reporting = true
+    elseif Dung.reporting then
+        Dung.reporting = false
+        Dung.SendStop()
     end
     Changed()
 end
 
 function Dung.Tick()
-    if Dung.mine and resendAt and Clock() >= resendAt then
+    if Dung.mine and Dung.reporting and resendAt and Clock() >= resendAt then
         resendAt = Clock() + RESEND
         Dung.Send(Dung.mine, false)
     end
@@ -479,14 +631,14 @@ local function Start()
     end
     Share.After(15, Loop)
     -- nach /reload mit laufender Suche: erneut melden
-    Share.After(18 + math.random() * 8, function() Dung.Update() end)
+    Share.After(18 + math.random() * 8, function() Dung.Update(true) end)
 end
 
 table.insert(Share.startHooks, Start)
 table.insert(Share.requestHooks, function()
-    if Dung.mine then Share.After(4 + math.random() * 12, function() if Dung.mine then Dung.Send(Dung.mine, false) end end) end
+    if Dung.mine and Dung.reporting then Share.After(4 + math.random() * 12, function() if Dung.mine and Dung.reporting then Dung.Send(Dung.mine, false) end end) end
 end)
-table.insert(Share.sendAllHooks, function() if Dung.mine then Dung.Send(Dung.mine, false) end end)
+table.insert(Share.sendAllHooks, function() if Dung.mine and Dung.reporting then Dung.Send(Dung.mine, false) end end)
 
 SLASH_FREEWOODDUNGEON1 = "/fwdungeon"
 SLASH_FREEWOODDUNGEON2 = "/fwdg"

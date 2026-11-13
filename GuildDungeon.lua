@@ -490,6 +490,11 @@ table.insert(Share.sendAllHooks, function() if Dung.mine then Dung.Send(Dung.min
 
 SLASH_FREEWOODDUNGEON1 = "/fwdungeon"
 SLASH_FREEWOODDUNGEON2 = "/fwdg"
-SlashCmdList["FREEWOODDUNGEON"] = function()
+SlashCmdList["FREEWOODDUNGEON"] = function(msg)
+    if string.lower(tostring(msg or "")) == "pos" and Guild.DungeonWin and Guild.DungeonWin.ResetPos then
+        Guild.DungeonWin.ResetPos()
+        FW:Print(FW.L.DUNG_WIN_RESET)
+        return
+    end
     if FW.UI and FW.UI.Toggle then FW.UI:Toggle("guild") end
 end

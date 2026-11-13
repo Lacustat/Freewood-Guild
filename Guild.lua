@@ -59,6 +59,7 @@ Guild.SETTINGS = {
     dungChat = true,         -- Zeile im Gildenchat, wenn man sich fuer einen Dungeon anmeldet
     dungAutoGuild = false,   -- Einladungen von Gildenmitgliedern bei laufender Suche annehmen
     dungAutoFriends = false, -- dasselbe fuer Freunde
+    dungWin = true,          -- kleines Fenster, das zeigt, wer in der Gilde nach einer Gruppe sucht
     headBars = true,         -- Lebensbalken und Name der Plakette bleiben sichtbar (aus: nur das Symbol)
 }
 

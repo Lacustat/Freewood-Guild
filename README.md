@@ -1,6 +1,6 @@
 # Freewood-Guild
 
-**Deutsch & English · German & English.** Autor · Author: Lacustat. Version 0.9.10 · Interface 16001 (World of Warcraft: Forever).
+**Deutsch & English · German & English.** Autor · Author: Lacustat. Version 0.9.11 · Interface 16001 (World of Warcraft: Forever).
 
 ## Inhalt · Contents
 - [Deutsch](#deutsch)

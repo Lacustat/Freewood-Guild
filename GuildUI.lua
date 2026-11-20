@@ -747,6 +747,7 @@ UI:RegisterTab("guild", {
 
 if UI.RegisterSettingsSection then
     UI:RegisterSettingsSection("guild-module", {
+        module = "guild",       -- Einstellungen im Modul (Core 0.54.0)
         category = "general",
         order = 60,
         height = 594,

@@ -1,6 +1,6 @@
 # Freewood-Guild
 
-**Deutsch & English · German & English.** Autor · Author: Lacustat. Version 0.9.11 · Interface 16001 (World of Warcraft: Forever).
+**Deutsch & English · German & English.** Autor · Author: Lacustat. Version 0.9.12 · Interface 16001 (World of Warcraft: Forever).
 
 ## Inhalt · Contents
 - [Deutsch](#deutsch)
@@ -13,6 +13,7 @@
 Das Gilden-Modul der Freewood-Familie: eine Mitgliedertabelle mit Berufen, Favoritengruppen, ein Level-Ranking, Gildenaufträge, Anfragen, eine Instanz-Übersicht und Mitglieder-Positionen auf der Karte. Alles ist im Spiel noch ungeprüft.
 
 ### Funktionen (Stufe 1 und 2)
+- Ab 0.9.12: Die Einstellungen stehen im Reiter Gilde hinter dem Knopf „Einstellungen“ oben rechts (braucht Core 0.55.0, sonst wie bisher im Reiter Einstellungen). Im Spiel ungeprüft.
 - **Mitglieder:** Tabelle mit Online/Offline/Alle, Suche (Name, Klasse, Beruf, sogar Rezepte: „Wer kann das herstellen?“), Spalten per Klick auf- und absteigend sortierbar. Spalten: Name, Level, Klasse, Rasse, Rang, Hauptberuf 1 und 2 (anklickbar: zeigt die Rezepte des Spielers), Kochen, Erste Hilfe, Angeln, Spielzeit, EP-Balken, Gold (nur Eigentümer).
 - **Rezeptfenster** (Klick auf einen Beruf): Rezepte nach Körperplatz gruppiert (Kopf, Brust, Gürtel …), mit Item-Stufe, Qualitätsfarbe, Item-Tooltip und Material (grün, wenn in der Tasche). „Beobachten“ legt das Rezept in die Beobachtungsliste von Freewood-Core (`/fwwatch`). Das Ergebnis-Item und das Material melden die Mitglieder mit ihren Rezepten.
 - **Rechtsklick** auf ein Mitglied: Flüstern, Einladen, Favorit und Favoritengruppe.
@@ -73,6 +74,7 @@ GPL-3.0-or-later (siehe `LICENSE`).
 The guild module of the Freewood family: a member table with professions, favourite groups, a guild level ranking, guild orders, requests, an instance overview and member positions on the map. Everything is still unverified in the game.
 
 ### Features (stages 1 and 2)
+- Since 0.9.12: the settings are in the Guild tab behind the "Settings" button at the top right (needs Core 0.55.0, otherwise in the Settings tab as before). Not verified in game.
 - **Members:** table with Online/Offline/All, search (name, class, profession, even recipes: "who can craft this?"), columns sortable ascending/descending by click. Columns: name, level, class, race, rank, main profession 1 and 2 (clickable: shows the player's recipes), cooking, first aid, fishing, played time, XP bar, gold (owners only).
 - **Recipe window** (click a profession): recipes grouped by equipment slot (head, chest, belt …), with item level, quality colour, item tooltip and materials (green when in your bags). "Watch" puts the recipe into the watch list of Freewood-Core (`/fwwatch`). Members report the result item and the materials together with their recipes.
 - **Right click** on a member: whisper, invite, favourite and favourite group.

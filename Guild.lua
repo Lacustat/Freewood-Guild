@@ -84,8 +84,13 @@ end
 -- Namen
 ------------------------------------------------------------------------
 
+-- Realm ueber den Core (leerer Text vom Spiel zaehlt nicht, der letzte echte Name ist gemerkt; 0.9.13, Forever_Failure F-37)
+local function NonEmpty(v) if type(v) == "string" and v ~= "" then return v end return nil end
 local function OwnRealm()
-    local r = G.GetNormalizedRealmName and G.GetNormalizedRealmName() or G.GetRealmName and G.GetRealmName() or ""
+    local FWc = G.Freewood
+    local r = (FWc and FWc.Util and FWc.Util.NormalizedRealm and NonEmpty(FWc.Util.NormalizedRealm()))
+        or NonEmpty(G.GetNormalizedRealmName and G.GetNormalizedRealmName())
+        or NonEmpty(G.GetRealmName and G.GetRealmName()) or ""
     return string.lower((string.gsub(tostring(r or ""), "[%s%-]", "")))
 end
 

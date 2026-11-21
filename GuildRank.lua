@@ -128,17 +128,15 @@ local function Build(content)
         function(v) Guild.DB().settings.follow = v and true or false end)
     follow:SetPoint("TOPRIGHT", f, "TOPRIGHT", -150, 2)
     follow:SetWidth(240)
-    local info = UI.CreateLabel(f, L.RANK_INFO, { size = 11, color = "textDim" })
-    info:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -26)
-    info:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -26)
-    info:SetWordWrap(false)
+    -- Erklaerung als goldenes "i" aus dem Core (0.10.0)
+    if UI.CreateInfoIcon then UI.CreateInfoIcon(f, L.RANK_TITLE, L.RANK_INFO):SetPoint("LEFT", title, "RIGHT", 6, 0) end
 
     ------------------------------------------------------------------
     -- Highlight: die Besten vier
     ------------------------------------------------------------------
     local arena = UI.CreatePanel(f, "bgDeep", "bronze")
-    arena:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -48)
-    arena:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -48)
+    arena:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -32)
+    arena:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -32)
     arena:SetHeight(176)
     local battle = UI.CreateLabel(arena, "", { font = "heading", size = 13, color = "danger", justify = "CENTER", flags = "OUTLINE" })
     battle:SetPoint("TOP", arena, "TOP", 0, -6)

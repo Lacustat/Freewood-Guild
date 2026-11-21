@@ -84,17 +84,14 @@ local function BuildPage(content)
     Box(L.DUNG_SET_AUTO_FRIENDS, "dungAutoFriends", -68)
     Box(L.DUNG_SET_WIN, "dungWin", -90, function() if Guild.DungeonWin and Guild.DungeonWin.Refresh then Guild.DungeonWin.Refresh() end end)
 
-    local info = UI.CreateLabel(f, L.DUNG_INFO, { size = 10, color = "textDim" })
-    info:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -116)
-    info:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -116)
-    info:SetHeight(14)
-    info:SetWordWrap(false)
+    -- Erklaerung als goldenes "i" aus dem Core (0.10.0)
+    if UI.CreateInfoIcon then UI.CreateInfoIcon(f, L.DUNG_TITLE, L.DUNG_INFO):SetPoint("LEFT", title, "RIGHT", 6, 0) end
 
     local empty = UI.CreateLabel(f, L.DUNG_EMPTY, { size = 12, color = "textDim" })
-    empty:SetPoint("TOPLEFT", f, "TOPLEFT", 4, -146)
+    empty:SetPoint("TOPLEFT", f, "TOPLEFT", 4, -130)
 
     local scroll = UI.CreateScrollFrame(f)
-    scroll:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -136)
+    scroll:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -120)
     scroll:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
     local rows = {}
 

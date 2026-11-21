@@ -405,8 +405,8 @@ local function BuildMembers(content)
     local search = W.Edit(f, 260, 24)
     search:SetPoint("LEFT", dd, "RIGHT", 8, 0)
     search.onChange = function(t) M.search = t or ""; f.Refresh() end
-    local hint = UI.CreateLabel(f, L.GUILD_SEARCH_HINT, { size = 11, color = "textDim" })
-    hint:SetPoint("LEFT", search, "RIGHT", 8, 0)
+    -- Erklaerung als goldenes "i" aus dem Core (0.10.0)
+    if UI.CreateInfoIcon then UI.CreateInfoIcon(f, _G.SEARCH or "Suche", L.GUILD_SEARCH_HINT):SetPoint("LEFT", search, "RIGHT", 8, 0) end
     local count = UI.CreateLabel(f, "", { size = 12, color = "textDim", justify = "RIGHT" })
     count:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -4)
     local refresh = UI.CreateButton(f, L.GUILD_REFRESH, 100, 24, function() Guild.RequestRoster(true); if Guild.Share then Guild.Share.Request(false) end end)
@@ -827,9 +827,7 @@ if UI.RegisterSettingsSection then
             headSlider.onText = function(v) headLabel:SetText(string.format(L.GUILD_SET_HEADSIZE, v)) end
             stack:Add(headSlider, { height = 20, gap = 4 })
             f.headSlider = headSlider
-            local note = UI.CreateLabel(f, L.GUILD_SET_NOTE, { size = 11, color = "textDim", justifyV = "TOP" })
-            note:SetWordWrap(true)
-            stack:Add(note, { height = 44, gap = 8 })
+            if f.AddInfo then f:AddInfo(L.GUILD_SET_NOTE) end
             return f
         end,
         refresh = function(frame)

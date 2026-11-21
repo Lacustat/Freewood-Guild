@@ -495,9 +495,8 @@ if UI and W and Guild.RegisterPage then
         })
         dd:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
         dd:SetValue("")
-        local info = UI.CreateLabel(f, L.INST_INFO, { size = 11, color = "textDim" })
-        info:SetPoint("LEFT", dd, "RIGHT", 10, 0)
-        info:SetWordWrap(false)
+        -- Erklaerung als goldenes "i" aus dem Core (0.10.0)
+        if UI.CreateInfoIcon then UI.CreateInfoIcon(f, L.INST_TAB, L.INST_INFO):SetPoint("LEFT", dd, "RIGHT", 8, 0) end
         local mine = UI.CreateButton(f, L.INST_MINE, 160, 24, function() Inst.ImportSaved(); if G.RequestRaidInfo then pcall(G.RequestRaidInfo) end; f.Refresh() end)
         mine:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 

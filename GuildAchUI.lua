@@ -189,14 +189,11 @@ local function BuildPage(content)
     local test = UI.CreateButton(f, L.ACH_TEST, 110, 24, function() Ach.TestToast() end)
     test:SetPoint("RIGHT", toggle, "LEFT", -6, 0)
 
-    local info = UI.CreateLabel(f, L.ACH_INFO, { size = 10, color = "textDim" })
-    info:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -46)
-    info:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -46)
-    info:SetHeight(14)
-    info:SetWordWrap(false)
+    -- Erklaerung als goldenes "i" aus dem Core (0.10.0)
+    if UI.CreateInfoIcon then UI.CreateInfoIcon(f, L.ACH_TITLE, L.ACH_INFO):SetPoint("LEFT", title, "RIGHT", 6, 0) end
 
     local scroll = UI.CreateScrollFrame(f)
-    scroll:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -66)
+    scroll:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -56)
     scroll:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
     local child = scroll.child
 

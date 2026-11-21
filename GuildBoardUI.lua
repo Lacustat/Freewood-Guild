@@ -338,9 +338,11 @@ local function BuildPage(kind)
         })
         dd:SetPoint("LEFT", newBtn, "RIGHT", 10, 0)
         dd:SetValue("open")
-        local info = UI.CreateLabel(f, kind == "O" and L.BOARD_INFO_ORDER or L.BOARD_INFO_REQUEST, { size = 11, color = "textDim", justify = "RIGHT" })
-        info:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -6)
-        info:SetWordWrap(false)
+        -- Erklaerung als goldenes "i" aus dem Core (0.10.0)
+        if UI.CreateInfoIcon then
+            UI.CreateInfoIcon(f, kind == "O" and L.BOARD_TAB_ORDERS or L.BOARD_TAB_REQUESTS, kind == "O" and L.BOARD_INFO_ORDER or L.BOARD_INFO_REQUEST)
+                :SetPoint("LEFT", dd, "RIGHT", 8, 0)
+        end
         local empty = UI.CreateLabel(f, L.BOARD_EMPTY, { size = 12, color = "textDim" })
         empty:SetPoint("TOPLEFT", f, "TOPLEFT", 4, -50)
 

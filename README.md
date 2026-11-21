@@ -1,6 +1,6 @@
 # Freewood-Guild
 
-**Deutsch & English · German & English.** Autor · Author: Lacustat. Version 0.9.13 · Interface 16001 (World of Warcraft: Forever).
+**Deutsch & English · German & English.** Autor · Author: Lacustat. Version 0.10.0 · Interface 16001 (World of Warcraft: Forever).
 
 ## Inhalt · Contents
 - [Deutsch](#deutsch)
@@ -13,6 +13,7 @@
 Das Gilden-Modul der Freewood-Familie: eine Mitgliedertabelle mit Berufen, Favoritengruppen, ein Level-Ranking, Gildenaufträge, Anfragen, eine Instanz-Übersicht und Mitglieder-Positionen auf der Karte. Alles ist im Spiel noch ungeprüft.
 
 ### Funktionen (Stufe 1 und 2)
+- Ab 0.10.0: Erklärungen als goldenes „i“ aus dem Core (braucht Core 0.58.0, sonst fehlen sie nur): Gildenerfolge, Dungeon Browser und Rangliste hinter der Überschrift, Aufträge/Anfragen und Instanzen neben dem Auswahlmenü, Mitgliedersuche neben dem Suchfeld, Hinweis der Einstellungen hinter deren Überschrift. Listen beginnen dadurch etwas höher. Im Spiel ungeprüft.
 - Ab 0.9.13: Eigener Realm über den Core (leerer Text vom Spiel zählt nicht, Forever_Failure F-37).
 - Ab 0.9.12: Die Einstellungen stehen im Reiter Gilde hinter dem Knopf „Einstellungen“ oben rechts (braucht Core 0.55.0, sonst wie bisher im Reiter Einstellungen). Im Spiel ungeprüft.
 - **Mitglieder:** Tabelle mit Online/Offline/Alle, Suche (Name, Klasse, Beruf, sogar Rezepte: „Wer kann das herstellen?“), Spalten per Klick auf- und absteigend sortierbar. Spalten: Name, Level, Klasse, Rasse, Rang, Hauptberuf 1 und 2 (anklickbar: zeigt die Rezepte des Spielers), Kochen, Erste Hilfe, Angeln, Spielzeit, EP-Balken, Gold (nur Eigentümer).
@@ -75,6 +76,7 @@ GPL-3.0-or-later (siehe `LICENSE`).
 The guild module of the Freewood family: a member table with professions, favourite groups, a guild level ranking, guild orders, requests, an instance overview and member positions on the map. Everything is still unverified in the game.
 
 ### Features (stages 1 and 2)
+- Since 0.10.0: explanations as the golden "i" from the Core (needs Core 0.58.0, otherwise they are just missing): guild achievements, dungeon browser and ranking behind the heading, orders/requests and instances next to the dropdown, member search next to the search box, settings note behind its heading. Lists start a little higher as a result. Not verified in game.
 - Since 0.9.13: own realm via the Core (empty text from the game does not count, Forever_Failure F-37).
 - Since 0.9.12: the settings are in the Guild tab behind the "Settings" button at the top right (needs Core 0.55.0, otherwise in the Settings tab as before). Not verified in game.
 - **Members:** table with Online/Offline/All, search (name, class, profession, even recipes: "who can craft this?"), columns sortable ascending/descending by click. Columns: name, level, class, race, rank, main profession 1 and 2 (clickable: shows the player's recipes), cooking, first aid, fishing, played time, XP bar, gold (owners only).

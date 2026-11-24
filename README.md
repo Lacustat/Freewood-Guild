@@ -1,6 +1,6 @@
 # Freewood-Guild
 
-**Deutsch & English · German & English.** Autor · Author: Lacustat. Version 0.10.0 · Interface 16001 (World of Warcraft: Forever).
+**Deutsch & English · German & English.** Autor · Author: Lacustat. Version 0.11.0 · Interface 16001 (World of Warcraft: Forever).
 
 ## Inhalt · Contents
 - [Deutsch](#deutsch)
@@ -13,6 +13,7 @@
 Das Gilden-Modul der Freewood-Familie: eine Mitgliedertabelle mit Berufen, Favoritengruppen, ein Level-Ranking, Gildenaufträge, Anfragen, eine Instanz-Übersicht und Mitglieder-Positionen auf der Karte. Alles ist im Spiel noch ungeprüft.
 
 ### Funktionen (Stufe 1 und 2)
+- Ab 0.11.0: Fenster „Gilde sucht“ zeigt jede Suche als Block: oben die Instanz (nur wenn sie wechselt), darunter jedes Gildenmitglied der Gruppe in einer eigenen Zeile mit Klassenfarbe (Melder zuerst, „(du)“ bei dir), darunter „Gruppe 2/5, sucht Schaden“. Im Legion-Rahmen so viele ganze Blöcke wie passen, der Rest als „+n weitere“.
 - Ab 0.10.0: Erklärungen als goldenes „i“ aus dem Core (braucht Core 0.58.0, sonst fehlen sie nur): Gildenerfolge, Dungeon Browser und Rangliste hinter der Überschrift, Aufträge/Anfragen und Instanzen neben dem Auswahlmenü, Mitgliedersuche neben dem Suchfeld, Hinweis der Einstellungen hinter deren Überschrift. Listen beginnen dadurch etwas höher. Im Spiel ungeprüft.
 - Ab 0.9.13: Eigener Realm über den Core (leerer Text vom Spiel zählt nicht, Forever_Failure F-37).
 - Ab 0.9.12: Die Einstellungen stehen im Reiter Gilde hinter dem Knopf „Einstellungen“ oben rechts (braucht Core 0.55.0, sonst wie bisher im Reiter Einstellungen). Im Spiel ungeprüft.
@@ -76,6 +77,7 @@ GPL-3.0-or-later (siehe `LICENSE`).
 The guild module of the Freewood family: a member table with professions, favourite groups, a guild level ranking, guild orders, requests, an instance overview and member positions on the map. Everything is still unverified in the game.
 
 ### Features (stages 1 and 2)
+- Since 0.11.0: The "Guild is looking" window shows each search as a block: the instance on top (only when it changes), below every guild member of the group on its own line in class colour (reporter first, "(you)" for you), below that "Group 2/5, looking for damage". In the Legion frame as many whole blocks as fit, the rest as "+n more".
 - Since 0.10.0: explanations as the golden "i" from the Core (needs Core 0.58.0, otherwise they are just missing): guild achievements, dungeon browser and ranking behind the heading, orders/requests and instances next to the dropdown, member search next to the search box, settings note behind its heading. Lists start a little higher as a result. Not verified in game.
 - Since 0.9.13: own realm via the Core (empty text from the game does not count, Forever_Failure F-37).
 - Since 0.9.12: the settings are in the Guild tab behind the "Settings" button at the top right (needs Core 0.55.0, otherwise in the Settings tab as before). Not verified in game.

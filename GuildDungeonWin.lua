@@ -4,7 +4,9 @@
 -- verschiebbar (die Lage wird gemerkt). Linksklick auf eine Zeile fluestert, Rechtsklick laedt ein. Ein-/Ausschalten in den
 -- Einstellungen des Dungeon-Browsers (dungWin) und mit dem X im Fenster (bis jemand Neues sucht).
 -- Im Design "Legion der Affen" (UI.LegionSkin.active) sitzt das Fenster in einem festen Bildrahmen (Media/suche_rahmen.tga, 512x512,
--- mit Affenkopf, Aexten, Bannern): feste Groesse, innen Platz fuer Titel und 3 Zeilen, weitere als "+n weitere". Sonst wie bisher.
+-- mit Affenkopf, Aexten, Bannern): feste Groesse, innen so viele Bloecke wie passen, weitere als "+n weitere". Sonst wie bisher.
+-- Ab 0.11.0 ein Block je Suche: oben die Instanz (nur wenn sie sich zur vorigen aendert), darunter jedes Gildenmitglied der
+-- Gruppe in einer eigenen Zeile (Klassenfarbe), darunter "Gruppe 2/5, sucht Schaden".
 -- UNGEPRUEFT im Spiel.
 --
 -- Inhalt: Zeilen und Anzeigeregeln (pruefbar), Klick, Fenster
@@ -34,12 +36,16 @@ function Win.On()
     return Guild.Setting("dungWin") ~= false
 end
 
--- Zeilen fuer die Anzeige aus der Liste des Dungeon-Browsers. Rueckgabe: Zeilen { key, name, class, self, label, text }, Anzahl nicht gezeigter
-function Win.Lines(list, maxRows)
+-- Bloecke fuer die Anzeige aus der Liste des Dungeon-Browsers (0.11.0). Rueckgabe: Bloecke
+-- { key, name (Klickziel = Melder), class, self, label, showLabel, members = { { name, class, self } }, text, title }, Anzahl nicht gezeigter.
+-- budget (optional): verfuegbare Hoehe in Pixeln; es kommen nur ganze Bloecke hinein (mindestens einer).
+function Win.Lines(list, maxRows, budget)
     local L = FW.L
     local out = {}
     list = list or {}
     maxRows = maxRows or MAX_ROWS
+    local used, lastLabel = 0, nil
+    local selfName = Guild.SelfName and Guild.SelfName() or nil
     for _, e in ipairs(list) do
         if #out >= maxRows then break end
         local words = Dung.RoleWords(e.roles or {})
@@ -49,12 +55,33 @@ function Win.Lines(list, maxRows)
         else
             what = string.format(L.DUNG_WIN_SOLO, words)
         end
-        -- Gruppe mit mehreren Gildenmitgliedern: alle Namen in einer Zeile ("Anna + Bob"); angeklickt wird der Melder
-        local title
-        if e.members and #e.members > 1 then title = table.concat(e.members, " + ") end
-        out[#out + 1] = { key = e.key, name = e.name or "?", title = title, class = e.class, self = e.self and true or false, label = e.label or "?", text = what }
+        -- Mitglieder: Melder zuerst, dann die uebrigen Gildenmitglieder der Gruppe
+        local names = { e.name or "?" }
+        for _, n in ipairs(e.members or {}) do
+            if n ~= e.name then names[#names + 1] = n end
+        end
+        local members = {}
+        for _, n in ipairs(names) do
+            local row = Guild.Row and Guild.Row(n)
+            local cls = (n == e.name and e.class) or (row and row.class) or nil
+            members[#members + 1] = { name = n, class = cls, self = (e.self and n == e.name) or (selfName ~= nil and n == selfName) }
+        end
+        local label = e.label or "?"
+        local block = { key = e.key, name = e.name or "?", class = e.class, self = e.self and true or false, label = label,
+            showLabel = label ~= lastLabel, members = members, text = what,
+            title = (#names > 1) and table.concat(names, " + ") or nil }
+        local h = Win.BlockHeight(block)
+        if budget and #out > 0 and used + h > budget then break end
+        used = used + h
+        lastLabel = label
+        out[#out + 1] = block
     end
     return out, #list - #out
+end
+
+-- Hoehe eines Blocks in Pixeln (Instanz 15, je Mitglied 14, Suchzeile 13, Rand 6)
+function Win.BlockHeight(b)
+    return (b.showLabel and 15 or 0) + 14 * #(b.members or {}) + 13 + 6
 end
 
 -- Soll das Fenster offen sein? count = Anzahl der Suchenden. Mit dem X geschlossen bleibt es zu, bis mehr Leute suchen als dabei.
@@ -195,6 +222,13 @@ local function Build()
     return f
 end
 
+local function Font(r, size, color)
+    local fs = UI.CreateLabel(r, "", { size = size, color = color })
+    fs:SetWordWrap(false)
+    fs:SetJustifyH("LEFT")
+    return fs
+end
+
 local function GetRow(i)
     local r = rows[i]
     if r then return r end
@@ -204,16 +238,9 @@ local function GetRow(i)
     r.bg = r:CreateTexture(nil, "BACKGROUND")
     r.bg:SetAllPoints()
     r.bg:SetColorTexture(UI.Color("card", 0.6))
-    r.line1 = UI.CreateLabel(r, "", { size = 12 })
-    r.line1:SetPoint("TOPLEFT", r, "TOPLEFT", 6, -3)
-    r.line1:SetPoint("RIGHT", r, "RIGHT", -6, 0)
-    r.line1:SetHeight(13)
-    r.line1:SetWordWrap(false)
-    r.line2 = UI.CreateLabel(r, "", { size = 10, color = "textDim" })
-    r.line2:SetPoint("TOPLEFT", r, "TOPLEFT", 6, -17)
-    r.line2:SetPoint("RIGHT", r, "RIGHT", -6, 0)
-    r.line2:SetHeight(11)
-    r.line2:SetWordWrap(false)
+    r.head = Font(r, 12, "goldLight")
+    r.names = {}
+    r.line2 = Font(r, 10, "textDim")
     r:SetScript("OnClick", function(self, button) Win.Click(self.line, button) end)
     r:SetScript("OnEnter", function(self)
         local tip = G.GameTooltip
@@ -228,9 +255,44 @@ local function GetRow(i)
     return r
 end
 
+-- Block fuellen und anordnen; Rueckgabe: Hoehe
+local function FillRow(r, b)
+    local L = FW.L
+    local y = 3
+    local function Put(fs, h, indent)
+        fs:ClearAllPoints()
+        fs:SetPoint("TOPLEFT", r, "TOPLEFT", 6 + (indent or 0), -y)
+        fs:SetPoint("RIGHT", r, "RIGHT", -6, 0)
+        fs:SetHeight(h)
+        fs:Show()
+        y = y + h + 1
+    end
+    if b.showLabel then
+        r.head:SetText(b.label)
+        Put(r.head, 14)
+    else
+        r.head:Hide()
+    end
+    for i, m in ipairs(b.members) do
+        local fs = r.names[i]
+        if not fs then fs = Font(r, 12) r.names[i] = fs end
+        fs:SetText(m.name .. (m.self and (" " .. L.DUNG_YOU) or ""))
+        local cr, cg, cb
+        if m.class and FW.ChatLog and FW.ChatLog.ClassColor then cr, cg, cb = FW.ChatLog.ClassColor(m.class) end
+        if cr then fs:SetTextColor(cr, cg, cb) else fs:SetTextColor(UI.Color("text")) end
+        Put(fs, 13, 6)
+    end
+    for i = #b.members + 1, #r.names do r.names[i]:Hide() end
+    r.line2:SetText(b.text)
+    Put(r.line2, 12, 6)
+    local h = y + 2
+    r:SetHeight(h)
+    return h
+end
+
 function Win.Refresh()
     local leg = Win.LegionOn()
-    local lines, more = Win.Lines(Dung.List(), leg and LEG_ROWS or MAX_ROWS)
+    local lines, more = Win.Lines(Dung.List(), MAX_ROWS, leg and (LEG_H - 16) or nil)
     if not Win.ShouldShow(#lines + more) then
         if frame then frame:Hide() end
         return
@@ -239,25 +301,22 @@ function Win.Refresh()
     if f.leg ~= leg then ApplyLook(f) end
     local L = FW.L
     f.count = #lines + more
-    local x0, y0, x1, pitch = 6, HEAD, -6, ROW_H + 2
-    if leg then x0, y0, x1, pitch = LEG_L, LEG_T + 16, -(LEG_SIZE - LEG_L - LEG_W), ROW_H + 1 end
+    local x0, y0, x1, gap = 6, HEAD, -6, 2
+    if leg then x0, y0, x1, gap = LEG_L, LEG_T + 16, -(LEG_SIZE - LEG_L - LEG_W), 1 end
+    local y = y0
     for i, line in ipairs(lines) do
         local r = GetRow(i)
         r.line = line
-        local cr, cg, cb
-        if line.class and FW.ChatLog and FW.ChatLog.ClassColor then cr, cg, cb = FW.ChatLog.ClassColor(line.class) end
-        r.line1:SetText((line.title or line.name) .. (line.self and (" " .. L.DUNG_YOU) or "") .. "  -  " .. line.label)
-        if cr then r.line1:SetTextColor(cr, cg, cb) else r.line1:SetTextColor(UI.Color("text")) end
-        r.line2:SetText(line.text)
         r:ClearAllPoints()
-        r:SetPoint("TOPLEFT", f, "TOPLEFT", x0, -y0 - (i - 1) * pitch)
-        r:SetPoint("TOPRIGHT", f, "TOPRIGHT", x1, -y0 - (i - 1) * pitch)
+        r:SetPoint("TOPLEFT", f, "TOPLEFT", x0, -y)
+        r:SetPoint("TOPRIGHT", f, "TOPRIGHT", x1, -y)
+        y = y + FillRow(r, line) + gap
         r:Show()
     end
     for i = #lines + 1, #rows do rows[i].line = nil; rows[i]:Hide() end
     f.more:SetText(more > 0 and string.format(L.DUNG_WIN_MORE, more) or "")
     if not leg then
-        f:SetHeight(HEAD + #lines * (ROW_H + 2) + (more > 0 and 14 or 6))
+        f:SetHeight(y + (more > 0 and 14 or 6))
     end
     f:Show()
 end

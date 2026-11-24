@@ -48,6 +48,31 @@ lines, more = W.Lines(many, 3)
 eq(#lines, 3, "Legion-Rahmen: 3 Zeilen"); eq(more, 8, "Legion-Rahmen: acht weitere")
 lines = W.Lines({ { key = "j", name = "Jinxer Darktide", label = "BDT", size = 3, roles = { T = true }, members = { "Jinxer Darktide", "Pinky Freewood" } } })
 eq(lines[1].title, "Jinxer Darktide + Pinky Freewood", "Gruppe: beide Namen in einer Zeile"); eq(lines[1].name, "Jinxer Darktide", "Klick geht an den Melder")
+-- 0.11.0: Block je Suche: Instanz oben (nur bei Wechsel), jedes Mitglied eigene Zeile, Suchzeile unten
+Guild.Row = function(n) return ({ ["Pinky Freewood"] = { class = "HUNTER" }, ["Shoggette Silberruecken"] = { class = "MAGE" } })[n] end
+lines = W.Lines({
+    { key = "h", name = "Heilmuht Silberruecken", class = "PRIEST", label = "Wehklage", size = 2, roles = { D = true },
+      members = { "Shoggette Silberruecken", "Heilmuht Silberruecken" } },
+    { key = "p", name = "Pinky Freewood", label = "Wehklage", size = 1, roles = { H = true }, self = true },
+    { key = "q", name = "Bob", label = "Todesminen", size = 1, roles = { T = true } },
+})
+eq(#lines, 3, "drei Bloecke")
+eq(lines[1].showLabel, true, "erste Instanz oben"); eq(lines[1].label, "Wehklage", "Instanz")
+eq(#lines[1].members, 2, "zwei Mitglieder"); eq(lines[1].members[1].name, "Heilmuht Silberruecken", "Melder zuerst")
+eq(lines[1].members[1].class, "PRIEST", "Klasse des Melders"); eq(lines[1].members[2].class, "MAGE", "Klasse aus der Gildenliste")
+eq(lines[1].text, "gruppe 2 Schaden", "Suchzeile")
+eq(lines[2].showLabel, false, "gleiche Instanz: keine zweite Ueberschrift"); eq(lines[2].members[1].self, true, "du")
+eq(lines[3].showLabel, true, "neue Instanz: Ueberschrift")
+eq(W.BlockHeight(lines[1]), 15 + 28 + 13 + 6, "Hoehe Block 1")
+-- Platz im Legion-Rahmen: nur ganze Bloecke
+local fit, rest = W.Lines({
+    { key = "h", name = "A", label = "X", size = 3, roles = { D = true }, members = { "A", "B", "C" } },
+    { key = "i", name = "D", label = "Y", size = 1, roles = { D = true } },
+}, 8, 80)
+eq(#fit, 1, "nur ein Block passt"); eq(rest, 1, "einer als +1 weitere")
+fit = W.Lines({ { key = "h", name = "A", label = "X", size = 5, roles = { D = true }, members = { "A", "B", "C", "D", "E" } } }, 8, 40)
+eq(#fit, 1, "mindestens ein Block, auch wenn er nicht ganz passt")
+
 lines, more = W.Lines(nil)
 eq(#lines, 0, "leer"); eq(more, 0, "leer: nichts verborgen")
 

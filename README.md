@@ -1,126 +1,130 @@
-# Freewood-Guild
+# Freewood Guild
 
-**Deutsch & English · German & English.** Autor · Author: Lacustat. Version 0.11.0 · Interface 16001 (World of Warcraft: Forever).
+**English · Deutsch** — Author: Lacustat · Version 0.11.0 · Interface 16001 (World of Warcraft: Forever)
 
-## Inhalt · Contents
-- [Deutsch](#deutsch)
+## Contents · Inhalt
 - [English](#english)
-- [Tastenbelegung · Key bindings](#tastenbelegung--key-bindings)
+  - [What is Freewood Guild?](#what-is-freewood-guild)
+  - [Members and professions](#members-and-professions)
+  - [Favourites and level ranking](#favourites-and-level-ranking)
+  - [Orders and requests](#orders-and-requests)
+  - [Dungeon browser](#dungeon-browser)
+  - [Instances and guild achievements](#instances-and-guild-achievements)
+  - [Map and name plates](#map-and-name-plates)
+  - [Where the data comes from](#where-the-data-comes-from)
+  - [Commands](#commands)
+  - [Requirements and installation](#requirements-and-installation)
+- [Deutsch](#deutsch)
+  - [Was ist Freewood Guild?](#was-ist-freewood-guild)
+  - [Mitglieder und Berufe](#mitglieder-und-berufe)
+  - [Favoriten und Level-Rangliste](#favoriten-und-level-rangliste)
+  - [Aufträge und Gesuche](#aufträge-und-gesuche)
+  - [Dungeon-Browser](#dungeon-browser-1)
+  - [Instanzen und Gilden-Erfolge](#instanzen-und-gilden-erfolge)
+  - [Karte und Namensplaketten](#karte-und-namensplaketten)
+  - [Woher die Daten kommen](#woher-die-daten-kommen)
+  - [Befehle](#befehle)
+  - [Voraussetzungen und Installation](#voraussetzungen-und-installation)
+- [Changelog · Änderungen](CHANGELOG.md)
 
-## Deutsch
-
-### Was ist das?
-Das Gilden-Modul der Freewood-Familie: eine Mitgliedertabelle mit Berufen, Favoritengruppen, ein Level-Ranking, Gildenaufträge, Anfragen, eine Instanz-Übersicht und Mitglieder-Positionen auf der Karte. Alles ist im Spiel noch ungeprüft.
-
-### Funktionen (Stufe 1 und 2)
-- Ab 0.11.0: Fenster „Gilde sucht“ zeigt jede Suche als Block: oben die Instanz (nur wenn sie wechselt), darunter jedes Gildenmitglied der Gruppe in einer eigenen Zeile mit Klassenfarbe (Melder zuerst, „(du)“ bei dir), darunter „Gruppe 2/5, sucht Schaden“. Im Legion-Rahmen so viele ganze Blöcke wie passen, der Rest als „+n weitere“.
-- Ab 0.10.0: Erklärungen als goldenes „i“ aus dem Core (braucht Core 0.58.0, sonst fehlen sie nur): Gildenerfolge, Dungeon Browser und Rangliste hinter der Überschrift, Aufträge/Anfragen und Instanzen neben dem Auswahlmenü, Mitgliedersuche neben dem Suchfeld, Hinweis der Einstellungen hinter deren Überschrift. Listen beginnen dadurch etwas höher. Im Spiel ungeprüft.
-- Ab 0.9.13: Eigener Realm über den Core (leerer Text vom Spiel zählt nicht, Forever_Failure F-37).
-- Ab 0.9.12: Die Einstellungen stehen im Reiter Gilde hinter dem Knopf „Einstellungen“ oben rechts (braucht Core 0.55.0, sonst wie bisher im Reiter Einstellungen). Im Spiel ungeprüft.
-- **Mitglieder:** Tabelle mit Online/Offline/Alle, Suche (Name, Klasse, Beruf, sogar Rezepte: „Wer kann das herstellen?“), Spalten per Klick auf- und absteigend sortierbar. Spalten: Name, Level, Klasse, Rasse, Rang, Hauptberuf 1 und 2 (anklickbar: zeigt die Rezepte des Spielers), Kochen, Erste Hilfe, Angeln, Spielzeit, EP-Balken, Gold (nur Eigentümer).
-- **Rezeptfenster** (Klick auf einen Beruf): Rezepte nach Körperplatz gruppiert (Kopf, Brust, Gürtel …), mit Item-Stufe, Qualitätsfarbe, Item-Tooltip und Material (grün, wenn in der Tasche). „Beobachten“ legt das Rezept in die Beobachtungsliste von Freewood-Core (`/fwwatch`). Das Ergebnis-Item und das Material melden die Mitglieder mit ihren Rezepten.
-- **Rechtsklick** auf ein Mitglied: Flüstern, Einladen, Favorit und Favoritengruppe.
-- **Favoriten:** Favoriten und Favoritengruppen pro Charakter oder für den ganzen Account, Gruppe mit einem Klick einladen.
-- **Level-Ranking:** Wertung = Gesamt-EP durch Spielzeit; die besten vier oben als Highlight („Kopf an Kopf“), darunter die Tabelle. Mit „Folgen“ gibt es einen Hinweis bei Platzwechsel.
-- **Gildenaufträge:** Beruf und Rezept (aus den Rezepten der Mitglieder), Menge, Notiz, Materialliste mit „habe ich / fehlt“. Jeder darf einstellen, übernehmen („Mach ich“) und als erledigt markieren. Löschen dürfen Ersteller, Gildenleiter und Eigentümer. Nach 7 Tagen verschwindet alles von selbst.
-- **Anfragen:** wie Aufträge, aber auch mit beliebigen Items (Suche über Freewood-CodexData) und Tooltips.
-- **Instanz-Übersicht:** alle Dungeons und Raids mit Bossen; Mausüberfahrt zeigt, wer den Boss getötet hat; Filter pro Spieler. Quellen: Boss-Kills des Spiels (`ENCOUNTER_END`), `BOSS_KILL` und gesperrte Instanzen.
-- **Spaltenüberschriften (0.5.1):** zentriert, unter dem Legion-Design schlanke Holzplanken ohne Seil.
-- **Dungeon Browser (0.5.0):** Neuer Reiter im Gilden-Fenster. Das Modul lauscht bei der Gruppensuche des Spiels mit (`C_LFGList`: Eintragen, Entfernen, Gruppenänderungen) und meldet der Gilde, wer wofür sucht: versteckt für alle mit Freewood-Guild (Nachricht `L`) und auf Wunsch (Haken, Standard an) als Zeile im Gildenchat („[Freewood] Pinky sucht für Todesminen als Schaden.“, höchstens eine pro Minute). Der Reiter listet alle Sucher je Dungeon mit Rollen und, bei Gruppen, was sie haben und was fehlt; dazu ein Gruppenvorschlag (1 Tank, 1 Heiler, 3 Schaden, Mehrfachrollen werden so verteilt, dass die Gruppe voll wird) mit Knopf „Gruppe einladen“: es lädt nur der ein, der sich zuerst angemeldet hat. Zwei Haken (Standard aus) nehmen Einladungen von Gildenmitgliedern und von Freunden automatisch an, aber nur, solange man selbst sucht und in keiner Gruppe ist. Befehl `/fwdungeon`. Die Grundlagen stammen aus der Probe `/fwlfg` (Freewood-Dev 0.13.5 bis 0.13.8); der Name des Dungeons und die Rollen beim Eintragen sind im Spiel noch ungeprüft.
-- **Lebensbalken beim Affen (0.4.5):** Neue Einstellung „Lebensbalken und Name des Spielers sichtbar lassen“ (Standard an): Die Plakette bleibt normal sichtbar, der Affe sitzt darüber. Ausgeschaltet bleibt nur der Affe, wie bisher.
-- **Affe ohne Namensbalken (0.4.4):** Forever kennt die Spieleinstellung `nameplateShowFriends` nicht (Messung: Wert nil), deshalb blieben die Balken freundlicher Spieler aus und der Affe war nur mit von Hand eingeschalteten Balken sichtbar. Jetzt wird `nameplateShowFriendlyPlayers` zuerst probiert, danach die älteren Namen; `/fwguild stats` zeigt, was geprüft wurde. Außerdem: Positionen anderer Karten (andere Zone) erscheinen nicht auf deiner Karte, das ist gewollt.
-- **Messzeilen (0.4.3):** `/fwguild stats` zeigt zusätzlich, wie viele Positionsmeldungen ankommen (und von wem), die eigene Position, die Karten-ID, wie viele Symbole auf Weltkarte und Minimap gezeichnet werden und was der Affe über dem Kopf mit den Namensbalken macht. Nur Ausgabe, am Verhalten ändert sich nichts.
-- **Dungeons ohne Bossliste (0.4.2):** Krol'dok-Festung (40-55), Alcaz-Gefängnis (48-53), Schwarzmaulfeste (55-60) und Terrasse des Formers (58-60) stehen in der Übersicht mit dem Hinweis „Bossliste noch nicht bekannt, es wird auf Daten gewartet“. Besiegte Bosse werden mit Namen gespeichert, mit der Gilde geteilt und erscheinen automatisch in der Liste.
-- **Column headers (0.5.1):** centred, slim wooden planks without rope under the Legion design.
-- **Dungeon Browser (0.5.0):** New tab in the guild window. The module listens in on the game's group finder (`C_LFGList`: sign up, remove, group changes) and tells the guild who is searching for what: hidden for everyone with Freewood-Guild (message `L`) and optionally (checkbox, default on) as a line in guild chat ("[Freewood] Pinky is looking for Deadmines as Damage.", at most one per minute). The tab lists all searchers per dungeon with roles and, for groups, what they have and what is missing; plus a group suggestion (1 tank, 1 healer, 3 damage, multi-role players are spread so the group gets full) with a "Invite group" button: only the one who signed up first invites. Two checkboxes (default off) accept invites from guild members and from friends automatically, but only while you are searching yourself and are not in a group. Command `/fwdungeon`. The basis comes from the `/fwlfg` probe (Freewood-Dev 0.13.5 to 0.13.8); the dungeon name and the roles when signing up are still unverified in game.
-- **Health bar with the icon (0.4.5):** New setting "Keep the health bar and name of the player visible" (default on): the plate stays visible as normal and the icon sits above it. Off keeps only the icon, as before.
-- **Head icon without name plates (0.4.4):** Forever does not know the setting `nameplateShowFriends` (measured: nil), so the friendly-player plates stayed off and the icon only showed with plates switched on by hand. `nameplateShowFriendlyPlayers` is now tried first, then the older names; `/fwguild stats` shows what was checked. Also: positions on other maps (another zone) do not appear on your map, by design.
-- **Diagnostic lines (0.4.3):** `/fwguild stats` also shows how many position messages arrive (and from whom), your own position, the map ID, how many icons are drawn on the world map and minimap and what the head icon does with the name plates. Output only, behaviour is unchanged.
-- **Dungeons without a boss list (0.4.2):** Krol'dok Stronghold, Alcaz Island Prison, Blackmaw Hold and Shaper's Terrace are listed with a "waiting for data" note; bosses you defeat are stored by name, shared and shown automatically.
-- **Neue Forever-Dungeons (0.4.1):** Halle der Thane, Ruinen von Lordaeron, Ausgrabungsstätte: Sumpfland, Stadt Dalaran und Die versunkene Stadt stehen jetzt in der Instanzübersicht und bei den Erfolgen (Dungeon-, Gildenwissen-Erfolge). Bisherige Kills unter „*Ruinen von Lordaeron“ werden beim Anmelden übernommen (auch deutsche Bossnamen wie „Der Schlächter“ = The Baron). Krol'dok-Festung, Alcaz-Gefängnis, Schwarzmaulfeste und Terrasse des Formers fehlen noch (keine Bossliste bekannt); sie erscheinen dynamisch, sobald jemand dort einen Boss besiegt. Endboss von Lordaeron ist geraten (Baron oder Hauptmann).
-- **New Forever dungeons (0.4.1):** Hall of Thanes, Ruins of Lordaeron, Excavation Site: Wetlands, City of Dalaran and The Drowned City are now in the instance overview and the achievements. Old kills stored as "*Ruinen von Lordaeron" are migrated on login. Krol'dok Stronghold, Alcaz Prison, Blackmaw Hold and Shaper's Terrace are missing (no boss list known); they show up dynamically once someone kills a boss there. The Lordaeron final boss is a guess (Baron or Captain).
-- **Berufe aus dem Chat (0.8.0):** Das Spiel erlaubt es nicht, fremde Beruf-Links zu öffnen. Der Link enthält aber die Berufs-ID (`trade:<Spieler>:<Zauber>:<Beruf>`). Postet ein Gildenmitglied ohne dieses Addon seinen Beruf in einen beliebigen Chat-Kanal, merkt sich das Addon den Beruf; die Mitgliedertabelle zeigt den Namen ohne Stufe (bei Kochen, Erste Hilfe und Angeln ein „?“). Meldet das Mitglied später selbst (mit Addon), ersetzen die echten Daten den Eintrag. Rezepte und Stufe sind so nicht zu erfahren. Ein/Aus in den Einstellungen, `/fwguild trade` listet die gemerkten Berufe. Test: `tests/tradelink_test.lua`. Nicht im Spiel geprüft.
-- **Gilden-Rezeptabfrage (0.7.0, Probe):** Im Chat gepostete Berufe lassen sich im Spiel nicht öffnen, daher nutzt `/fwguild gildenrezepte` Blizzards Abfrage „Wer in der Gilde kann dieses Rezept?“ (`C_GuildInfo.QueryGuildMembersForRecipe`, `GetGuildRecipeMember`). Der Befehl zeigt, welche Funktionen Forever hat, und fragt bei geöffnetem eigenem Berufefenster drei gelernte und zwei nicht gelernte Rezepte ab (Anzahl, Namen, online) – so sehen wir, ob sich daraus Berufe und Rezepte von Mitgliedern ohne dieses Addon gewinnen lassen. Ab 0.8.0 schreibt die Probe zusätzlich jedes Ereignis mit Rohwerten mit, liest nach der Wartezeit die Ergebnisfunktion trotzdem, fragt das erste Rezept auch mit Stufe 0 ab und listet alle Gilden-/Beruf-Funktionen des Spiels (Suche nach einem Weg in die Gilden-Berufsansicht). Ergebnis im Chat und in `FreewoodGuildDB.recipeQuery`; noch keine Speicherung. Ergebnis der ersten Probe: Funktionen vorhanden, Abfragen angenommen, aber keine Antwort. Nicht im Spiel geprüft.
-- **Dungeon-Browser: Gruppen und Chat (0.9.10):** In den Gildenchat kommt nur noch **eine** Zeile pro Anmeldung (neue Suche oder anderer Dungeon), nie bei Änderungen der Gruppe (neue Mitglieder, andere Rollen); auch nach `/reload` bei laufender Suche keine zweite Zeile. Bei einer Gruppe meldet **nur der Gruppenleiter** (versteckte Nachricht mit allen Gildenmitgliedern der Gruppe), die Chatzeile nennt alle Namen ("A, B suchen für …"). Hat der Leiter das Addon nicht, springt nach etwa 20 bis 30 s ein Mitglied mit dem Addon ein (zufällige Wartezeit; meldet inzwischen jemand die Gruppe, bleibt es still; melden zwei zugleich, gewinnt der Gruppenleiter, sonst der kleinere Name). Im Fenster und auf der Seite steht jede Gruppe **einmal** ("Anna + Bob – Dungeon"); Einträge von Mitgliedern, die in einer gemeldeten Gruppe genannt werden, entfallen. Angeklickt wird der Melder. Neue Nachrichtenfelder `l` (Leiter) und `m` (Namen); ältere Versionen ignorieren sie. Nicht im Spiel geprüft.
-- **Dungeon-Fenster im Legion-Design (0.9.9):** Ist das Gesamtdesign "Legion der Affen" aktiv, sitzt das Fenster "Gilde sucht" in einem Bildrahmen (Affenkopf mit Krone, Äxte, Banner, Bananen; `Media/suche_rahmen.tga`, 512×512). Der Rahmen hat feste Größe (360 px), innen ist Platz für den Titel und 3 Zeilen; weitere Suchende erscheinen als "+n weitere". Er lässt sich weiter verschieben, das X und der Klick auf Zeilen bleiben. In allen anderen Designs bleibt das schlichte Fenster, das mit der Zahl der Suchenden wächst. Beim Wechsel des Designs passt sich das Fenster an. Das Schließen mit dem X zählt jetzt alle Suchenden, nicht nur die sichtbaren Zeilen. Nicht im Spiel geprüft (Lage von Titel, Zeilen und X im Rahmen nur an einer Vorschau gemessen).
-- **Plaketten gleichgeschaltet (0.9.8):** Der Haken für die Namensplaketten freundlicher Spieler und die Blizzard-Einstellung "Plaketten freundlicher Spieler" folgen einander in beide Richtungen. Schaltest du die Plaketten in den Spieleinstellungen aus oder an, zieht unser Haken nach (Ereignis `CVAR_UPDATE`, zusätzlich alle 3 s geprüft); hakst du bei uns an oder ab, wird die Spieleinstellung genauso gesetzt (im Kampf erst danach). Das Addon schaltet die Spieleinstellung nie mehr von selbst zurück (vorher geschah das bei jeder Gildenlisten-Aktualisierung, alle paar Sekunden). Nur bei einer frischen Installation wird sie einmal eingeschaltet, damit die Affen sichtbar sind; beim Update von einer älteren Version gilt der aktuelle Wert der Spieleinstellung. **Instanzen:** Dort greift das Addon nicht in die Plaketten ein (Blizzard-Standard, nichts wird ausgeblendet); das Symbol bleibt, lässt sich aber mit einem neuen Haken ("Symbol auch in Instanzen zeigen") dort ein- oder ausschalten. "Lebensbalken sichtbar" aus blendet Balken und Name jetzt immer aus (außerhalb von Instanzen), egal wer die Plaketten eingeschaltet hat. Nicht im Spiel geprüft.
-- **Dungeon-Fenster (0.9.7):** Ein kleines Fenster zeigt, wer in der Gilde gerade nach einer Gruppe sucht (Name in Klassenfarbe, Dungeon, gesuchte Rollen, bei Gruppen der Stand "Gruppe 2/5"; bis zu 8 Zeilen, dazu "+n weitere"). Es öffnet sich, sobald jemand sucht, und schließt sich, wenn niemand mehr sucht; mit dem X schließt man es, bis mehr Leute suchen als vorher. Es nutzt dieselben versteckten Gildennachrichten wie die Seite Dungeon Browser, braucht also keinen Kanal. Startposition ist über dem rechten Ende von Aktionsleiste 3 (sonst unten rechts), danach per Ziehen frei verschiebbar, die Lage wird gemerkt; `/fwdg pos` setzt sie zurück. Linksklick auf eine Zeile flüstert, Rechtsklick lädt ein. Ein- und ausschalten unter Dungeon Browser ("Kleines Fenster zeigen, wer in der Gilde sucht"), Standard an. Neue Datei GuildDungeonWin.lua. Nicht im Spiel geprüft.
-- **Berufsstufe aus dem Chat-Link (0.9.6):** Für Gildenmitglieder ohne das Addon zeigt die Übersicht statt "?" jetzt die Stufe, die das Spiel zur Zauber-ID im Berufe-Link nennt (z. B. "Geselle"; im Spiel geprüft: 3104 = Lederverarbeitung Geselle). Der Text steht hinter dem Beruf (Beruf 1/2) oder in der Spalte Kochen/Erste Hilfe/Angeln. Ein neuerer Link ersetzt die Stufe; fehlt der Text, bleibt "?" bzw. die alte Stufe. Es ist die Stufe beim Verlinken, keine genaue Zahl. Nur an einem Link (Lederverarbeitung Geselle) geprüft.
-- **Berufsstufe aus dem Link (0.9.5, Probe):** Das mittlere Feld eines Berufe-Links (`trade:Player-…:4038:202`) ist die Zauber-ID der Berufsstufe des Spielers (z. B. 4038 = Ingenieurskunst Experte). `/fwguild linkdebug` schlägt diese ID jetzt im Spiel nach und meldet Name und Stufentext ("Zauber 4038: Name …, Stufentext …"). Daran sehen wir, ob das Spiel die Stufe (Geselle, Experte, Handwerker …) selbst liefert; erst dann wird sie in der Gildenübersicht statt "?" gezeigt. Es wird noch nichts gespeichert. Nicht im Spiel geprüft.
-- **Beruf-Links über zwei Wege (0.9.4):** Ein Beruf lässt sich auf zwei Arten in den Chat setzen: über die Sprechblase im Berufefenster (`trade:`-Link, anklickbar) und per Shift+Klick im Zauberbuch (trade-Link oder, wenn das Spiel keinen liefert, ein Zauberlink). Bisher wurden nur `trade:`-Links erkannt. Jetzt zählt jeder Link, dessen Beschriftung einem Beruf entspricht (Zauber-, Verzauber- und andere Typen; Gegenstände, Quests, Spieler und ähnliche Typen nie). Aus einem Zauberlink steht nur der Beruf fest, ohne Stufe. Neuer Befehl `/fwguild linkdebug` meldet jeden Beruf-Link im Chat mit Typ, Beruf-ID, Gildenmitglied ja/nein und den Rohdaten, damit sichtbar wird, was Shift+Klick wirklich sendet. Nicht im Spiel geprüft.
-- **Chat-Meldung entfernt (0.9.3):** Die Probe-Meldung „Ereignis GUILD_TRADESKILL_UPDATE (Werte: table: …)“ erschien bei jedem Gildenereignis im Chat und ist weg. Die Gilden-Berufsliste liefert in Forever nur Summen je Beruf, keine Spielerzeilen (mit allen Aufklapp- und Filterversuchen geprüft); die Probe-Befehle bleiben vorerst drin.
-- **Gilden-Berufsliste, weitere Versuche (0.9.2):** Das Aufklappen mit `ExpandGuildTradeSkillHeader(i)` ließ die Liste bei 10 zugeklappten Überschriften (Beruf, online/gesamt), Spielerzeilen kamen nicht. `/fwguild gildenberufe` probiert danach schrittweise weiter (je 2 s Pause, Anzahl und Rohwerte nach jedem Schritt): Zeilen hinter der Anzahl direkt abfragen, `ExpandGuildTradeSkillHeader(0)`, erste Überschrift zu- und aufklappen, Filter zurücksetzen (`SetGuildTradeSkillItemNameFilter`, `SetGuildTradeSkillCategoryFilter`). Es wird weiter nichts gespeichert. Nicht im Spiel geprüft.
-- **Fremde Berufefenster und Gilden-Berufsliste (0.9.0, Proben):** Ein Beruf-Link öffnet sich nur bei manchen Spielern (bei Weedo Cowking ja, bei anderen nicht). Öffnet sich ein Fenster eines anderen Spielers (Link oder `C_GuildInfo.QueryGuildMemberRecipes`), schreibt das Addon in den Chat und nach `FreewoodGuildDB.tradeProbe`, was das Spiel liefert (Name, Beruf, Rang, Rezepte gesamt/gelernt, Beispiele); es wird noch nichts gespeichert. Neue Befehle: `/fwguild mitgliedrezepte <Name> <Beruf>` fragt die Rezepte eines Gildenmitglieds über seine Spieler-ID ab, `/fwguild gildenberufe` ruft die alte Gilden-Berufsliste ab (`QueryGuildRecipes`, `GetNumGuildTradeSkill`, `GetGuildTradeSkillInfo`) und schreibt die Rohwerte aus. Ab 0.9.1 klappt der Befehl nach der Abfrage alle zugeklappten Überschriften auf (`ExpandGuildTradeSkillHeader`) und schreibt bis zu 160 Zeilen mit Spielername, Klasse, online, Zone und Stufe aus. Erstes Ergebnis: Die Liste antwortet mit 10 Berufen (Anzahl online/gesamt je Beruf), Kochen, Erste Hilfe und Angeln fehlen. Nicht im Spiel geprüft.
-- **Erfolge (0.4.0):** Neuer Reiter „Erfolge“ im Gilden-Fenster. Die Gilde sammelt Punkte, zum Beispiel wenn mindestens 3 Gildenmitglieder in einer Gruppe den letzten Boss eines Dungeons besiegen (5 Mitglieder, 10 und 20 in Schlachtzügen geben mehr). Weitere Kategorien: Bosse (Zähler), Gildenwissen (alle Bosse einer Instanz), Mitglieder, Stufen, Berufe, Rezepte, Zeit, Vielfalt; zusammen über 120 Erfolge, aufklappbar mit Symbolen und Punkten. Jeder zählt nur seinen eigenen Anteil und teilt ihn mit der Gilde (Art „E“); die Gilde ergibt sich aus der Summe, es zählen nur Mitglieder laut Gildenliste. Die Gruppe wird über die Spieler-ID aus der Gildenliste erkannt. Ein Fenster meldet neue Erfolge (Einstellung „Fenster bei Gildenerfolgen zeigen“, auch auf der Seite), „Letzte Erfolge“ zeigt die Liste. `/fwach` zeigt die Punkte, `/fwach test` das Fenster. In den ersten 120 Sekunden nach dem Anmelden und bei alten Erfolgen (über 15 Minuten) gibt es kein Fenster. Nicht im Spiel geprüft.
-- **Eigener Name:** Forever liefert Vor- und Nachnamen getrennt (`UnitName` nur „Pinky“, die Gilde sieht „Pinky Freewood“). Früher bekam deshalb jeder Spieler zwei Einträge (zum Beispiel doppelt bei den Instanzen). Seit 0.4.0 gilt der volle Name; alte Einträge werden beim Anmelden zusammengeführt.
-- **Karte:** Gildenmitglieder auf der Weltkarte (Affenkopf, Gildenleiter mit Krone). In den Einstellungen ein-/ausschaltbar, eigene Position teilbar, Symbolgröße 8 bis 64 Pixel. Ab 0.3.5 auch auf der Minimap (Einstellung, Symbolgröße 8 bis 32 Pixel); die Position wird etwa alle 10 Sekunden gesendet, auf der Minimap werden die Symbole in Laufrichtung fortgeschrieben. Nicht im Spiel geprüft. Ab 0.3.6: Affensymbol (Gildenleiter mit Krone) über dem Kopf von Gildenmitgliedern, nicht beim eigenen Charakter; ein-/ausschaltbar, Größe 16 bis 64 Pixel. Es hängt an der Namensplakette: Die Einstellung „Plaketten freundlicher Spieler“ wird dafür eingeschaltet (alter Wert wird gemerkt und beim Ausschalten zurückgesetzt), das Plakettenbild bleibt ausgeblendet, nur das Symbol ist zu sehen. Nur du siehst es. Nicht im Spiel geprüft.
-- **Symbole:** Affenkopf für Mitglieder, Affenkopf mit Krone für den Gildenleiter (`Media\affen_mitglied.tga`, `Media\ober_affe.tga`).
-- **Befehle:** `/fwguild` (öffnen), `/fwguild probe` (prüft, was das Spiel liefert), `/fwguild share` (Daten neu senden), `/fwguild refresh`, `/fwguild sendtest` (misst die Sendegrenze des Spiels), `/fwguild stats` (Sende-Statistik).
-
-### So kommen die Daten zustande
-Aus der Gildenliste des Spiels kommen Name, Level, Klasse, Rang, Zone, Online-Status (und die Rasse per GUID, wenn möglich). Berufe, Rezepte, EP, Spielzeit, Gold, Aufträge, Boss-Kills und Position meldet jedes Mitglied mit diesem Addon selbst über Addon-Nachrichten (Präfix `FWGuild1`, gedrosselt wie Blizzards Regel: Burst bis 8, danach etwa eine Nachricht pro Sekunde; abgelehnte Nachrichten bleiben in der Warteschlange). Wer das Addon nicht hat, zeigt dort „-“. Rezepte werden gemeldet, sobald der Spieler sein Berufefenster öffnet. Das Gold geht nur als Flüsternachricht an online Eigentümer (aus `Freewood-Codex`).
-
-### Abhängigkeiten
-- Benötigt: `Freewood-Core` (ab 0.7.0 für die Beobachtungsliste)
-- Optional: `Freewood-Codex` (Eigentümer-Erkennung), `Freewood-CodexData`
-- Kein Creator, kein Brett.
-
-### Stand
-Alles ist im Spiel noch ungeprüft (nur in der Simulation getestet).
-
-### Lizenz
-GPL-3.0-or-later (siehe `LICENSE`).
+---
 
 ## English
 
-### What is this?
-The guild module of the Freewood family: a member table with professions, favourite groups, a guild level ranking, guild orders, requests, an instance overview and member positions on the map. Everything is still unverified in the game.
+### What is Freewood Guild?
+The guild module of the Freewood family. It turns your guild into a shared workplace: a member table with professions and recipes, guild orders and requests, a dungeon browser that shows who in the guild is looking for a group, guild achievements, a level ranking and guild members on the map. It works best when many guild members use it – every member with the addon shares their own data.
 
-### Features (stages 1 and 2)
-- Since 0.11.0: The "Guild is looking" window shows each search as a block: the instance on top (only when it changes), below every guild member of the group on its own line in class colour (reporter first, "(you)" for you), below that "Group 2/5, looking for damage". In the Legion frame as many whole blocks as fit, the rest as "+n more".
-- Since 0.10.0: explanations as the golden "i" from the Core (needs Core 0.58.0, otherwise they are just missing): guild achievements, dungeon browser and ranking behind the heading, orders/requests and instances next to the dropdown, member search next to the search box, settings note behind its heading. Lists start a little higher as a result. Not verified in game.
-- Since 0.9.13: own realm via the Core (empty text from the game does not count, Forever_Failure F-37).
-- Since 0.9.12: the settings are in the Guild tab behind the "Settings" button at the top right (needs Core 0.55.0, otherwise in the Settings tab as before). Not verified in game.
-- **Members:** table with Online/Offline/All, search (name, class, profession, even recipes: "who can craft this?"), columns sortable ascending/descending by click. Columns: name, level, class, race, rank, main profession 1 and 2 (clickable: shows the player's recipes), cooking, first aid, fishing, played time, XP bar, gold (owners only).
-- **Recipe window** (click a profession): recipes grouped by equipment slot (head, chest, belt …), with item level, quality colour, item tooltip and materials (green when in your bags). "Watch" puts the recipe into the watch list of Freewood-Core (`/fwwatch`). Members report the result item and the materials together with their recipes.
-- **Right click** on a member: whisper, invite, favourite and favourite group.
-- **Favourites:** favourites and favourite groups per character or account-wide, invite a group with one click.
-- **Level ranking:** score = total XP divided by played time; the top four as a highlight ("head to head"), the table below. "Follow" gives a notice when ranks change.
-- **Guild orders:** profession and recipe (from members' recipes), quantity, note, material list with "have / missing". Anyone can post, take ("I'll do it") and mark done. The creator, the guild master and owners can delete. Everything vanishes after 7 days.
-- **Requests:** like orders, but also any item (search via Freewood-CodexData) with tooltips.
-- **Instance overview:** all dungeons and raids with bosses; hover shows who killed a boss; per-player filter. Sources: the game's boss kills (`ENCOUNTER_END`), `BOSS_KILL` and saved instances.
-- **Professions from chat (0.8.0):** the game does not allow opening other players' profession links. The link does contain the profession ID (`trade:<player>:<spell>:<profession>`). When a guild member without this addon posts a profession in any chat channel, the addon remembers it; the member table shows the name without a rank (a "?" for cooking, first aid and fishing). When the member later reports data themselves (with the addon), the real data replaces the entry. Recipes and rank cannot be learned this way. On/off in the settings, `/fwguild trade` lists the remembered professions. Test: `tests/tradelink_test.lua`. Not verified in game.
-- **Guild recipe query (0.7.0, probe):** professions posted in chat cannot be opened in the game, so `/fwguild gildenrezepte` uses Blizzard's "who in the guild can craft this recipe?" query (`C_GuildInfo.QueryGuildMembersForRecipe`, `GetGuildRecipeMember`). The command shows which functions Forever has and, with your own profession window open, queries three learned and two unlearned recipes (count, names, online) – to see whether professions and recipes of members without this addon can be obtained this way. Since 0.8.0 the probe also logs every event with raw values, reads the result function after the wait anyway, queries the first recipe with level 0 too, and lists all guild/profession functions of the game (looking for a way into the guild profession view). Result in chat and in `FreewoodGuildDB.recipeQuery`; nothing is stored yet. Result of the first probe: functions exist, queries accepted, but no answer. Not verified in game.
-- **Dungeon Browser: groups and chat (0.9.10):** Guild chat gets only **one** line per sign-up (new search or different dungeon), never for group changes (new members, other roles); no second line after `/reload` during a search either. For a group **only the group leader reports** (hidden message with all guild members of the group), the chat line names everyone ("A, B are looking for …"). If the leader does not have the addon, a member with the addon steps in after about 20 to 30 s (random wait; if someone reports the group in the meantime it stays silent; if two report at once the group leader wins, otherwise the smaller name). Window and page show each group **once** ("Anna + Bob – dungeon"); entries of members named in a reported group disappear. The reporter is the one who gets clicked. New message fields `l` (leader) and `m` (names); older versions ignore them. Not verified in game.
-- **Dungeon window in the Legion design (0.9.9):** When the overall design "Legion der Affen" is active, the "Guild is searching" window sits in a picture frame (ape head with crown, axes, banners, bananas; `Media/suche_rahmen.tga`, 512×512). The frame has a fixed size (360 px) with room for the title and 3 rows; further searchers show as "+n more". It stays movable, the X and clicking on rows still work. All other designs keep the plain window that grows with the number of searchers. The window adapts when the design changes. Closing with the X now counts all searchers, not only the visible rows. Not verified in game (position of title, rows and X in the frame only measured on a preview).
-- **Name plates in sync (0.9.8):** The checkbox for name plates of friendly players and the Blizzard setting "friendly player name plates" now follow each other in both directions. If you turn the plates off or on in the game settings our checkbox follows (event `CVAR_UPDATE`, also checked every 3 s); if you tick or untick ours the game setting is set the same way (after combat if needed). The addon never switches the game setting back by itself any more (before it did at every guild roster update, every few seconds). Only on a fresh install it is turned on once so the monkeys are visible; when updating from an older version the current value of the game setting wins. **Instances:** the addon does not touch plates there (Blizzard default, nothing is hidden); the icon stays but can be switched on or off there with a new checkbox ("Show the icon in instances too"). "Keep health bar visible" off now always hides bar and name (outside instances), no matter who turned the plates on. Not verified in game.
-- **Dungeon window (0.9.7):** A small window shows who in the guild is currently looking for a group (name in class colour, dungeon, roles wanted, "group 2/5" for groups; up to 8 rows plus "+n more"). It opens as soon as someone searches and closes when nobody does; the X closes it until more people search than before. It uses the same hidden guild messages as the Dungeon Browser page, so no channel is needed. Start position is above the right end of action bar 3 (otherwise bottom right), then freely movable by dragging, the position is remembered; `/fwdg pos` resets it. Left click on a row whispers, right click invites. Switch it on or off under Dungeon Browser ("Show a small window with who in the guild is searching"), on by default. New file GuildDungeonWin.lua. Not verified in game.
-- **Profession tier from the chat link (0.9.6):** For guild members without the addon the overview now shows the tier the game reports for the spell ID in the profession link (e.g. "Journeyman"; verified in game: 3104 = Leatherworking Journeyman) instead of "?". It appears after the profession (profession 1/2) or in the Cooking/First Aid/Fishing column. A newer link replaces the tier; if no text is available, "?" or the old tier stays. It is the tier at the time of linking, not an exact number. Verified with one link only (Leatherworking Journeyman).
-- **Profession rank from the link (0.9.5, probe):** The middle field of a profession link (`trade:Player-…:4038:202`) is the spell ID of the player's profession tier (e.g. 4038 = Engineering Expert). `/fwguild linkdebug` now looks this ID up in the game and reports name and rank text ("Zauber 4038: Name …, Stufentext …"). This shows whether the game supplies the tier (Journeyman, Expert, Artisan …) itself; only then will it replace "?" in the guild overview. Nothing is stored yet. Not verified in game.
-- **Profession links via two routes (0.9.4):** A profession can be put in chat in two ways: the speech-bubble button in the profession window (`trade:` link, clickable) and Shift+click in the spellbook (trade link or, if the game gives none, a spell link). Until now only `trade:` links were recognised. Now every link whose label is a profession name counts (spell, enchant and other types; never items, quests, players and similar). A spell link only tells the profession, not the rank. New command `/fwguild linkdebug` reports every profession link in chat with type, profession ID, guild member yes/no and the raw data, to show what Shift+click really sends. Not verified in game.
-- **Chat message removed (0.9.3):** The probe message "Ereignis GUILD_TRADESKILL_UPDATE (Werte: table: …)" appeared in chat on every guild event and is gone. The guild profession list only returns totals per profession in Forever, no player rows (checked with all expand and filter attempts); the probe commands stay for now.
-- **Guild profession list, more attempts (0.9.2):** Expanding with `ExpandGuildTradeSkillHeader(i)` left the list at 10 collapsed headers (profession, online/total), no player rows. `/fwguild gildenberufe` now tries further step by step (2 s pause each, count and raw values after each step): read rows beyond the count, `ExpandGuildTradeSkillHeader(0)`, collapse/expand the first header, reset filters (`SetGuildTradeSkillItemNameFilter`, `SetGuildTradeSkillCategoryFilter`). Still nothing is stored. Not verified in game.
-- **Other players' profession windows and guild profession list (0.9.0, probes):** a profession link only opens for some players (yes for Weedo Cowking, no for others). When a window of another player opens (link or `C_GuildInfo.QueryGuildMemberRecipes`), the addon writes what the game provides (name, profession, rank, recipes total/learned, examples) to chat and `FreewoodGuildDB.tradeProbe`; nothing is stored yet. New commands: `/fwguild mitgliedrezepte <name> <profession>` queries a guild member's recipes via their player ID, `/fwguild gildenberufe` queries the old guild profession list (`QueryGuildRecipes`, `GetNumGuildTradeSkill`, `GetGuildTradeSkillInfo`) and prints the raw values. Since 0.9.1 the command expands all collapsed headers after the query (`ExpandGuildTradeSkillHeader`) and prints up to 160 rows with player name, class, online, zone and rank. First result: the list answers with 10 professions (online/total count per profession); cooking, first aid and fishing are missing. Not verified in game.
-- **Achievements (0.4.0):** new “Achievements” page in the guild window. The guild collects points, for example when at least 3 guild members in one group defeat the last boss of a dungeon (5 members, and 10 and 20 in raids give more). More categories: bosses (counters), guild knowledge (every boss of an instance), members, levels, professions, recipes, time, variety; over 120 achievements in total, collapsible, with icons and points. Everyone counts only their own part and shares it with the guild (kind “E”); the guild is the sum, and only members on the guild roster count. The group is recognised by the player ID from the guild roster. A window announces new achievements (setting “Show a window for guild achievements”, also on the page), “Latest achievements” shows the list. `/fwach` prints the points, `/fwach test` shows the window. No window in the first 120 seconds after login and for old achievements (over 15 minutes). Not verified in game.
-- **Own name:** Forever returns first and last name separately (`UnitName` only “Pinky”, the guild sees “Pinky Freewood”). Because of that every player used to get two entries (for example doubled in the instances). Since 0.4.0 the full name is used; old entries are merged at login.
-- **Map:** guild members on the world map (monkey head, guild master with crown). Switchable in the settings, own position shareable, icon size 8 to 64 pixels. Since 0.3.5 also on the minimap (setting, icon size 8 to 32 pixels); the position is sent about every 10 seconds and the minimap icons are extrapolated along the movement. Not verified in game. Since 0.3.6: monkey icon (guild master with crown) above guild members' heads, not on your own character; switchable, size 16 to 64 pixels. It hangs on the name plate: the “friendly player name plates” game setting is turned on for it (the old value is remembered and restored when switched off), the plate picture stays hidden and only the icon shows. Only you see it. Not verified in game.
-- **Icons:** monkey head for members, crowned monkey head for the guild master (`Media\affen_mitglied.tga`, `Media\ober_affe.tga`).
-- **Commands:** `/fwguild` (open), `/fwguild probe` (checks what the game provides), `/fwguild share` (resend data), `/fwguild refresh`, `/fwguild sendtest` (measures the game's send limit), `/fwguild stats` (send statistics).
+### Members and professions
+- Member table with online/offline/all, sortable columns: name, level, class, race, rank, both main professions, cooking, first aid, fishing, played time and XP.
+- Search by name, class, profession and even by recipe: "who can craft this?"
+- Click a profession to see the member's recipes, grouped by equipment slot, with item level, quality, tooltip and materials (green when you have them in your bags). "Watch" puts a recipe into the Freewood watch window.
+- Professions of members without the addon are picked up from profession links they post in chat, including the tier (journeyman, expert …).
+- Right-click on a member: whisper, invite, add to favourites or a favourite group.
+
+### Favourites and level ranking
+- Favourites and favourite groups, per character or account-wide; invite a whole group with one click.
+- Level ranking: experience per played hour. The top four are shown "head to head", everyone else in the table below; "Follow" tells you when ranks change.
+
+### Orders and requests
+- Guild orders: profession and recipe (from the members' recipes), quantity, note and a material list with "have / missing".
+- Requests: like orders, but for any item, with search and tooltips.
+- Anyone can post, take ("I'll do it") and mark done; the creator and the guild master can delete. Entries vanish after 7 days.
+
+### Dungeon browser
+- Listens to the game's group finder: when guild members sign up, the guild sees who is looking for which dungeon and which roles are still missing.
+- Small window "Guild is looking": each search as a block with the dungeon on top, every guild member of the group below in class colour and "Group 2/5, looking for damage". Left-click whispers, right-click invites. Movable, opens and closes by itself.
+- Optional single line in guild chat when you sign up (only one line per sign-up, the group leader reports for the whole group).
+- Group suggestion from the searching guild members (1 tank, 1 healer, 3 damage) with "Invite group".
+- Optional: accept invites from guild members or friends automatically while you are searching.
+
+### Instances and guild achievements
+- Overview of all dungeons and raids with their bosses; hover a boss to see who in the guild has killed it, with a filter per player.
+- Guild achievements: the guild collects points, for example when at least 3 guild members in one group defeat the last boss of a dungeon. Over 120 achievements in categories such as bosses, guild knowledge, members, levels, professions, recipes, time and variety.
+
+### Map and name plates
+- Guild members on the world map and minimap (monkey head, the guild master with a crown), icon size adjustable, sharing your own position can be switched off.
+- Optional monkey icon above guild members' heads.
 
 ### Where the data comes from
-The game's guild roster provides name, level, class, rank, zone, online status (and the race via GUID when possible). Professions, recipes, XP, played time, gold, orders, boss kills and position are reported by each member with this addon via addon messages (prefix `FWGuild1`, throttled like Blizzard's rule: burst up to 8, then about one message per second; rejected messages stay in the queue). Players without the addon show "-". Recipes are reported when the player opens the profession window. Gold goes only as a whisper to online owners (from `Freewood-Codex`).
+The game's guild roster provides name, level, class, rank, zone and online status. Professions, recipes, experience, played time, orders, boss kills and positions are reported by each member with this addon through hidden guild addon messages, throttled to the game's limits. Members without the addon show "-".
 
-### Dependencies
-- Required: `Freewood-Core` (0.7.0 or newer for the watch list)
-- Optional: `Freewood-Codex` (owner detection), `Freewood-CodexData`
-- No Creator, no Brett.
+### Commands
+- `/fwguild` or `/fwgilde` – open the guild tab; `/fwguild share` – send your data again; `/fwguild refresh`
+- `/fwdungeon` or `/fwdg` – dungeon browser; `/fwdg pos` – reset the window position
+- `/fwach` – guild achievements
 
-### Status
-Everything is still unverified in the game (simulation only).
+### Requirements and installation
+- Required: **Freewood Core**. Optional: **Freewood Codex**, **Freewood CodexData** (item search for requests).
+- Copy the folder `Freewood-Guild` into `World of Warcraft\_forever_\Interface\AddOns\`. Full game restart for new files.
+- Settings via the "Settings" button in the Guild tab. Licence: GPL-3.0.
 
-### License
-GPL-3.0-or-later (see `LICENSE`).
+---
 
-## Tastenbelegung · Key bindings
-**DE:** Unter Optionen > Tastaturbelegung gibt es einen eigenen Abschnitt für dieses Modul. Dort lässt sich eine Taste zum Öffnen und Schließen des Reiters belegen (zum Beispiel J für die Gilde). Ist der Reiter schon offen, schließt dieselbe Taste das Fenster. Nach der Installation einmal das Spiel neu starten, damit die neue Datei Bindings.xml gelesen wird.
-**EN:** Options > Key Bindings has its own section for this module. Bind a key to open and close the tab (for example J for the guild). If the tab is already open, the same key closes the window. Restart the game once after installing so the new Bindings.xml file is read.
+## Deutsch
+
+### Was ist Freewood Guild?
+Das Gildenmodul der Freewood-Familie. Es macht deine Gilde zu einem gemeinsamen Arbeitsplatz: eine Mitgliedertabelle mit Berufen und Rezepten, Gildenaufträge und Gesuche, ein Dungeon-Browser, der zeigt, wer in der Gilde eine Gruppe sucht, Gilden-Erfolge, eine Level-Rangliste und Gildenmitglieder auf der Karte. Am besten funktioniert es, wenn viele in der Gilde es nutzen – jedes Mitglied mit dem Addon teilt seine eigenen Daten.
+
+### Mitglieder und Berufe
+- Mitgliedertabelle mit Online/Offline/Alle, sortierbare Spalten: Name, Stufe, Klasse, Rasse, Rang, beide Hauptberufe, Kochen, Erste Hilfe, Angeln, Spielzeit und Erfahrung.
+- Suche nach Name, Klasse, Beruf und sogar nach Rezept: „Wer kann das herstellen?“
+- Klick auf einen Beruf zeigt die Rezepte des Mitglieds, nach Ausrüstungsplatz geordnet, mit Gegenstandsstufe, Qualität, Tooltip und Materialien (grün, wenn du sie in den Taschen hast). „Beobachten“ legt ein Rezept ins Freewood-Beobachten-Fenster.
+- Berufe von Mitgliedern ohne Addon werden aus Berufslinks im Chat übernommen, samt Stufe (Geselle, Experte …).
+- Rechtsklick auf ein Mitglied: anflüstern, einladen, zu den Favoriten oder einer Favoritengruppe.
+
+### Favoriten und Level-Rangliste
+- Favoriten und Favoritengruppen, je Charakter oder für den ganzen Account; eine ganze Gruppe mit einem Klick einladen.
+- Level-Rangliste: Erfahrung je Stunde Spielzeit. Die besten vier „Kopf an Kopf“, alle anderen in der Tabelle darunter; „Verfolgen“ meldet, wenn sich die Plätze ändern.
+
+### Aufträge und Gesuche
+- Gildenaufträge: Beruf und Rezept (aus den Rezepten der Mitglieder), Menge, Notiz und eine Materialliste mit „habe / fehlt“.
+- Gesuche: wie Aufträge, aber für jeden Gegenstand, mit Suche und Tooltips.
+- Jeder kann einstellen, übernehmen („Mach ich“) und als erledigt markieren; Ersteller und Gildenmeister können löschen. Einträge verschwinden nach 7 Tagen.
+
+### Dungeon-Browser
+- Lauscht bei der Gruppensuche des Spiels mit: Melden sich Gildenmitglieder an, sieht die Gilde, wer für welchen Dungeon sucht und welche Rollen noch fehlen.
+- Kleines Fenster „Gilde sucht“: jede Suche als Block mit dem Dungeon oben, darunter jedes Gildenmitglied der Gruppe in Klassenfarbe und „Gruppe 2/5, sucht Schaden“. Linksklick flüstert an, Rechtsklick lädt ein. Verschiebbar, öffnet und schließt sich von selbst.
+- Auf Wunsch eine Zeile im Gildenchat bei deiner Anmeldung (nur eine Zeile je Anmeldung, der Gruppenleiter meldet für die ganze Gruppe).
+- Gruppenvorschlag aus den suchenden Gildenmitgliedern (1 Tank, 1 Heiler, 3 Schaden) mit „Gruppe einladen“.
+- Auf Wunsch: Einladungen von Gildenmitgliedern oder Freunden automatisch annehmen, solange du suchst.
+
+### Instanzen und Gilden-Erfolge
+- Übersicht aller Dungeons und Schlachtzüge mit ihren Bossen; mit der Maus über einem Boss siehst du, wer in der Gilde ihn besiegt hat, mit Filter je Spieler.
+- Gilden-Erfolge: Die Gilde sammelt Punkte, zum Beispiel wenn mindestens 3 Gildenmitglieder in einer Gruppe den Endboss eines Dungeons besiegen. Über 120 Erfolge in Kategorien wie Bosse, Gildenwissen, Mitglieder, Stufen, Berufe, Rezepte, Zeit und Vielfalt.
+
+### Karte und Namensplaketten
+- Gildenmitglieder auf Weltkarte und Minimap (Affenkopf, der Gildenmeister mit Krone), Symbolgröße einstellbar, die eigene Position zu teilen lässt sich abschalten.
+- Auf Wunsch ein Affensymbol über den Köpfen der Gildenmitglieder.
+
+### Woher die Daten kommen
+Die Gildenliste des Spiels liefert Name, Stufe, Klasse, Rang, Zone und Online-Status. Berufe, Rezepte, Erfahrung, Spielzeit, Aufträge, Bosskills und Positionen meldet jedes Mitglied mit diesem Addon über versteckte Addon-Nachrichten in der Gilde, gedrosselt nach den Grenzen des Spiels. Mitglieder ohne Addon zeigen „-“.
+
+### Befehle
+- `/fwguild` oder `/fwgilde` – Gildenreiter öffnen; `/fwguild share` – eigene Daten erneut senden; `/fwguild refresh`
+- `/fwdungeon` oder `/fwdg` – Dungeon-Browser; `/fwdg pos` – Fensterposition zurücksetzen
+- `/fwach` – Gilden-Erfolge
+
+### Voraussetzungen und Installation
+- Benötigt: **Freewood Core**. Optional: **Freewood Codex**, **Freewood CodexData** (Gegenstandssuche für Gesuche).
+- Den Ordner `Freewood-Guild` nach `World of Warcraft\_forever_\Interface\AddOns\` kopieren. Bei neuen Dateien das Spiel komplett neu starten.
+- Einstellungen über den Knopf „Einstellungen“ im Reiter Gilde. Lizenz: GPL-3.0.

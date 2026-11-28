@@ -1,11 +1,12 @@
 # Freewood Guild
 
-**English · Deutsch** — Author: Lacustat · Version 0.11.0 · Interface 16001 (World of Warcraft: Forever)
+**English · Deutsch** — Author: Lacustat · Version 0.12.0 · Interface 16001 (World of Warcraft: Forever)
 
 ## Contents · Inhalt
 - [English](#english)
   - [What is Freewood Guild?](#what-is-freewood-guild)
   - [Members and professions](#members-and-professions)
+  - [Officers and guild master](#officers-and-guild-master)
   - [Favourites and level ranking](#favourites-and-level-ranking)
   - [Orders and requests](#orders-and-requests)
   - [Dungeon browser](#dungeon-browser)
@@ -17,6 +18,7 @@
 - [Deutsch](#deutsch)
   - [Was ist Freewood Guild?](#was-ist-freewood-guild)
   - [Mitglieder und Berufe](#mitglieder-und-berufe)
+  - [Offiziere und Gildenmeister](#offiziere-und-gildenmeister)
   - [Favoriten und Level-Rangliste](#favoriten-und-level-rangliste)
   - [Aufträge und Gesuche](#aufträge-und-gesuche)
   - [Dungeon-Browser](#dungeon-browser-1)
@@ -39,7 +41,15 @@ The guild module of the Freewood family. It turns your guild into a shared workp
 - Search by name, class, profession and even by recipe: "who can craft this?"
 - Click a profession to see the member's recipes, grouped by equipment slot, with item level, quality, tooltip and materials (green when you have them in your bags). "Watch" puts a recipe into the Freewood watch window.
 - Professions of members without the addon are picked up from profession links they post in chat, including the tier (journeyman, expert …).
-- Right-click on a member: whisper, invite, add to favourites or a favourite group.
+- Right-click on a member: whisper, invite, manage, add to favourites or a favourite group.
+
+### Officers and guild master
+Everything your guild rank allows, right in the addon; the buttons only appear when your rank has the right.
+- "Manage..." on a member: edit the public and officer note, change the rank (several steps at once), remove from the guild, hand over guild leadership. The officer note also shows in the member tooltip.
+- "Management" tab: message of the day, guild information, invite by full name, leave the guild, disband (guild master, type the guild name to confirm).
+- Ranks (guild master): rename, new rank, delete empty ranks, move up and down, rights of each rank as tick boxes; the game's own rank window as a fallback.
+- Guild log: who invited, promoted, demoted or removed whom, and when.
+- Rank changes, invites, removing and leadership use the game's own guild commands when you click "Yes" (the game only allows them that way); not in combat.
 
 ### Favourites and level ranking
 - Favourites and favourite groups, per character or account-wide; invite a whole group with one click.
@@ -90,7 +100,15 @@ Das Gildenmodul der Freewood-Familie. Es macht deine Gilde zu einem gemeinsamen 
 - Suche nach Name, Klasse, Beruf und sogar nach Rezept: „Wer kann das herstellen?“
 - Klick auf einen Beruf zeigt die Rezepte des Mitglieds, nach Ausrüstungsplatz geordnet, mit Gegenstandsstufe, Qualität, Tooltip und Materialien (grün, wenn du sie in den Taschen hast). „Beobachten“ legt ein Rezept ins Freewood-Beobachten-Fenster.
 - Berufe von Mitgliedern ohne Addon werden aus Berufslinks im Chat übernommen, samt Stufe (Geselle, Experte …).
-- Rechtsklick auf ein Mitglied: anflüstern, einladen, zu den Favoriten oder einer Favoritengruppe.
+- Rechtsklick auf ein Mitglied: anflüstern, einladen, verwalten, zu den Favoriten oder einer Favoritengruppe.
+
+### Offiziere und Gildenmeister
+Alles, was dein Gildenrang erlaubt, direkt im Addon; die Knöpfe erscheinen nur, wenn dein Rang das Recht hat.
+- „Verwalten…“ bei einem Mitglied: öffentliche Notiz und Offiziersnotiz bearbeiten, Rang ändern (auch mehrere Stufen auf einmal), aus der Gilde entfernen, Gildenleitung übergeben. Die Offiziersnotiz steht auch im Tooltip des Mitglieds.
+- Reiter „Verwaltung“: Nachricht des Tages, Gildeninformation, mit vollem Namen einladen, Gilde verlassen, Gilde auflösen (Gildenmeister, zum Bestätigen den Gildennamen eintippen).
+- Ränge (Gildenmeister): umbenennen, neuer Rang, leere Ränge löschen, nach oben und unten schieben, Rechte je Rang als Haken; das Rangfenster des Spiels als Rückfall.
+- Gildenprotokoll: wer wen eingeladen, befördert, degradiert oder entfernt hat, und wann.
+- Rangwechsel, Einladen, Entfernen und Gildenleitung laufen beim Klick auf „Ja“ über die Gildenbefehle des Spiels (anders erlaubt es das Spiel nicht); nicht im Kampf.
 
 ### Favoriten und Level-Rangliste
 - Favoriten und Favoritengruppen, je Charakter oder für den ganzen Account; eine ganze Gruppe mit einem Klick einladen.

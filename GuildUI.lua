@@ -349,6 +349,10 @@ local function FavMenu(v)
         { L.CHAN_WHISPER, function() Guild.Whisper(name) end },
         { L.CHAN_INVITE, function() Guild.Invite(name) end },
     }
+    -- Verwaltung (Notizen, Rang, Entfernen ...): GuildAdminUI.lua
+    if Guild.AdminUI then
+        items[#items + 1] = { L.GADM_MENU_MANAGE, function() Guild.AdminUI.OpenMember(v.row) end }
+    end
     if Fav then
         for _, scope in ipairs({ "char", "account" }) do
             local tag = scope == "char" and L.FAV_TAG_CHAR or L.FAV_TAG_ACCOUNT
@@ -385,6 +389,9 @@ local function Tooltip(self)
         G.GameTooltip:AddLine(L.GUILD_NO_DATA, 0.6, 0.6, 0.55)
     end
     if v.row.note ~= "" then G.GameTooltip:AddLine(v.row.note, 0.8, 0.8, 0.5) end
+    if v.row.onote and v.row.onote ~= "" and Guild.Admin and Guild.Admin.CanViewOfficer() then
+        G.GameTooltip:AddLine(string.format(L.GADM_TIP_OFFICER, v.row.onote), 0.55, 0.85, 1)
+    end
     G.GameTooltip:Show()
 end
 
@@ -707,7 +714,12 @@ local function BuildMain(content)
         end
     end
 
+    -- Knopfbreite passt sich an (seit 0.12.0 zehn Unterseiten): hoechstens 128, mindestens 84
     function f.LayoutBar()
+        local n = #Guild.pages
+        local width = bar:GetWidth()
+        if not width or width < 100 then width = 1320 end
+        local bw = math.max(84, math.min(128, math.floor(width / math.max(1, n)) - 4))
         local x = 0
         for _, def in ipairs(Guild.pages) do
             local b = f.buttons[def.id]
@@ -716,11 +728,13 @@ local function BuildMain(content)
                 f.buttons[def.id] = b
             end
             b:SetLabel(def.label())
+            b:SetWidth(bw)
             b:ClearAllPoints()
             b:SetPoint("TOPLEFT", bar, "TOPLEFT", x, 0)
-            x = x + 132
+            x = x + bw + 4
         end
     end
+    bar:SetScript("OnSizeChanged", function() f.LayoutBar() end)
     f.LayoutBar()
     main = f
     return f

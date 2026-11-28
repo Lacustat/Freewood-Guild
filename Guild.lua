@@ -342,7 +342,9 @@ function Guild.ReadRoster()
                     level = tonumber(level) or 0, class = token, className = type(class) == "string" and class or nil,
                     race = race, rank = type(rank) == "string" and rank or "", rankIndex = tonumber(rankIndex) or 99,
                     zone = type(zone) == "string" and zone or "", online = online and true or false,
-                    lastHours = last, guid = guid, note = type(note) == "string" and note or "",
+                    lastHours = last, guid = guid, note = type(note) == "string" and not Secret(note) and note or "",
+                    onote = type(onote) == "string" and not Secret(onote) and onote or "",
+                    index = i, rankOrder = (tonumber(rankIndex) or 98) + 1,
                 }
                 rows[#rows + 1] = row
                 byKey[key] = row
